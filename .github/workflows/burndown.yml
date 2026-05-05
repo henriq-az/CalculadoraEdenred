@@ -49,7 +49,7 @@ jobs:
         run: |
           git config --global user.name  "GitHub Action Bot"
           git config --global user.email "action@github.com"
-          git pull --rebase origin main
           git add -f burndown_sprint1.png 
           git commit -m "chore: atualiza burndown charts [skip ci]" || echo "Sem mudanças"
+          git pull --rebase origin main
           git push
