@@ -1,9 +1,11 @@
 package com.root.calculadoraedenred.service;
 
+import com.root.calculadoraedenred.dto.ImpactDTO;
 import com.root.calculadoraedenred.dto.ScoreDTO;
 import com.root.calculadoraedenred.dto.TransactionDTO;
 import com.root.calculadoraedenred.model.Transaction;
 import com.root.calculadoraedenred.model.enums.PaymentType;
+import com.root.calculadoraedenred.model.enums.Period;
 import com.root.calculadoraedenred.repository.EmissionFactorRepository;
 import com.root.calculadoraedenred.repository.TransactionRepository;
 import lombok.RequiredArgsConstructor;
@@ -73,6 +75,35 @@ public class TransactionService {
 
         return new ScoreDTO(score, label, actualCO2, baselineCO2, co2Saved,
             transactions.size(), digitalCount, startDate, endDate);
+    }
+
+    public ImpactDTO calculateImpact(Long companyId, String periodStr) {
+        Period period;
+        try {
+            period = Period.valueOf(periodStr.toUpperCase());
+        } catch (IllegalArgumentException e) {
+            throw new IllegalArgumentException(
+                "Período inválido: '" + periodStr + "'. Use: weekly, monthly ou yearly.");
+        }
+
+        LocalDate hoje = LocalDate.now();
+        ScoreDTO base = calculateScore(companyId, hoje.withDayOfMonth(1), hoje);
+        double baseCO2 = base.getCo2Saved();
+
+        double multiplier = switch (period) {
+            case WEEKLY  -> 1.0 / 4.0;
+            case MONTHLY -> 1.0;
+            case YEARLY  -> 12.0;
+        };
+
+        double co2 = baseCO2 * multiplier;
+        String label = switch (period) {
+            case WEEKLY  -> "estimativa semanal";
+            case MONTHLY -> "estimativa mensal";
+            case YEARLY  -> "estimativa anual";
+        };
+
+        return new ImpactDTO(co2, co2 / 21_000.0, co2 / 120.0, label, period.name().toLowerCase());
     }
 
     private String resolveLabel(double score) {

@@ -43,7 +43,7 @@
   background: var(--bg);
   color: var(--text-h);
   font-size: 14px;
-  font-family: var(--sans);
+  font-family: var(--sans), sans-serif;
 }
 
 .filter-field input:focus {
@@ -75,6 +75,39 @@
   color: #b91c1c;
   border: 1px solid #fca5a5;
   border-radius: 8px;
+}
+
+.period-toggle {
+  display: flex;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.period-btn {
+  padding: 8px 20px;
+  border: none;
+  background: var(--bg);
+  color: var(--text);
+  font-size: 14px;
+  font-family: var(--sans), sans-serif;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+}
+
+.period-btn + .period-btn {
+  border-left: 1px solid var(--border);
+}
+
+.period-btn--active {
+  background: var(--accent);
+  color: #fff;
+  font-weight: 600;
+}
+
+.period-btn:hover:not(.period-btn--active) {
+  background: var(--code-bg);
 }
 
 @media (max-width: 1024px) {

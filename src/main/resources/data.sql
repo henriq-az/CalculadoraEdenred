@@ -17,22 +17,32 @@ ON CONFLICT (payment_type) DO UPDATE
 -- Seed: transações de exemplo (só insere se a tabela estiver vazia)
 INSERT INTO transactions (company_id, payment_type, amount, transaction_date)
 SELECT * FROM (VALUES
-    -- Empresa 1: 2 transações digitais → score ~77 (Floresta)
-    (1, 'PIX',      150.00, TIMESTAMP '2026-04-01 09:15:00'),
-    (1, 'NFC',       89.90, TIMESTAMP '2026-04-03 14:32:00'),
-    -- Empresa 2: mix digital/físico → score ~46 (Arbusto)
-    (2, 'PHYSICAL', 320.50, TIMESTAMP '2026-04-10 11:00:00'),
-    (2, 'TED',     1000.00, TIMESTAMP '2026-04-15 16:45:00'),
-    -- Empresa 3: só PIX → score ~96 (Floresta)
-    (3, 'PIX',       47.30, TIMESTAMP '2026-04-22 08:05:00'),
-    -- Empresa 4: mix com maioria digital → score ~66 (Árvore grande)
-    (4, 'TED',      200.00, TIMESTAMP '2026-04-02 10:00:00'),
-    (4, 'TED',      350.00, TIMESTAMP '2026-04-05 11:30:00'),
-    (4, 'TED',      180.00, TIMESTAMP '2026-04-08 09:45:00'),
-    (4, 'TED',      420.00, TIMESTAMP '2026-04-12 14:00:00'),
-    (4, 'NFC',       95.00, TIMESTAMP '2026-04-14 16:20:00'),
-    (4, 'PIX',       60.00, TIMESTAMP '2026-04-18 08:30:00'),
-    (4, 'PHYSICAL', 530.00, TIMESTAMP '2026-04-20 13:10:00'),
-    (4, 'PHYSICAL', 275.00, TIMESTAMP '2026-04-25 17:00:00')
+    -- Empresa 1: maio 2026 (mês atual) — maioria digital
+    (1, 'PIX',      150.00, TIMESTAMP '2026-05-02 09:15:00'),
+    (1, 'NFC',       89.90, TIMESTAMP '2026-05-05 14:32:00'),
+    (1, 'PIX',       45.00, TIMESTAMP '2026-05-08 10:00:00'),
+    (1, 'PHYSICAL', 210.00, TIMESTAMP '2026-05-12 11:30:00'),
+    (1, 'TED',      300.00, TIMESTAMP '2026-05-15 16:00:00'),
+    (1, 'PIX',       78.50, TIMESTAMP '2026-05-18 08:45:00'),
+    -- Empresa 1: abril 2026 (mês anterior)
+    (1, 'PIX',      130.00, TIMESTAMP '2026-04-03 09:00:00'),
+    (1, 'NFC',       95.00, TIMESTAMP '2026-04-10 13:00:00'),
+    (1, 'PHYSICAL', 180.00, TIMESTAMP '2026-04-20 15:30:00'),
+    -- Empresa 2: maio 2026 — mix digital/físico
+    (2, 'PHYSICAL', 320.50, TIMESTAMP '2026-05-03 11:00:00'),
+    (2, 'TED',     1000.00, TIMESTAMP '2026-05-07 16:45:00'),
+    (2, 'PHYSICAL', 450.00, TIMESTAMP '2026-05-14 10:20:00'),
+    (2, 'PIX',      200.00, TIMESTAMP '2026-05-17 09:00:00'),
+    -- Empresa 3: maio 2026 — só PIX
+    (3, 'PIX',       47.30, TIMESTAMP '2026-05-04 08:05:00'),
+    (3, 'PIX',       92.00, TIMESTAMP '2026-05-09 14:00:00'),
+    (3, 'PIX',       61.50, TIMESTAMP '2026-05-16 11:00:00'),
+    -- Empresa 4: maio 2026 — mix variado
+    (4, 'TED',      200.00, TIMESTAMP '2026-05-02 10:00:00'),
+    (4, 'TED',      350.00, TIMESTAMP '2026-05-05 11:30:00'),
+    (4, 'NFC',       95.00, TIMESTAMP '2026-05-09 16:20:00'),
+    (4, 'PIX',       60.00, TIMESTAMP '2026-05-13 08:30:00'),
+    (4, 'PHYSICAL', 530.00, TIMESTAMP '2026-05-16 13:10:00'),
+    (4, 'PHYSICAL', 275.00, TIMESTAMP '2026-05-19 17:00:00')
 ) AS v(company_id, payment_type, amount, transaction_date)
 WHERE NOT EXISTS (SELECT 1 FROM transactions LIMIT 1);
