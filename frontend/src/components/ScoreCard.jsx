@@ -188,7 +188,7 @@ function PlantVisual({ score }) {
   return <SeedSVG progress={progress} />;
 }
 
-export default function ScoreCard({ score }) {
+export default function ScoreCard({ score, unknownCount = 0 }) {
   if (!score) return <div className="score-empty">Sem dados para o período selecionado.</div>;
 
   const rawScore = score.score;
@@ -245,6 +245,17 @@ export default function ScoreCard({ score }) {
             <span className="sc-stat-lbl">digitais</span>
           </div>
         </div>
+
+        {/* Unknown warning */}
+        {unknownCount > 0 && (
+          <div className="sc-unknown-warning" role="alert">
+            <span className="sc-unknown-icon" aria-hidden="true">⚠️</span>
+            <span>
+              <strong>{unknownCount} {unknownCount === 1 ? 'transação' : 'transações'} com tipo não identificado</strong>
+              {' '}foram contabilizadas como cartão físico e impactam negativamente o score.
+            </span>
+          </div>
+        )}
 
         {/* Progress bar */}
         <div className="sc-progress-wrap">

@@ -181,6 +181,26 @@
   font-weight: 700;
 }
 
+/* ── Unknown warning ── */
+.sc-unknown-warning {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 10px 14px;
+  background: #fff8e1;
+  border: 1px solid #ffe082;
+  border-radius: 8px;
+  font-size: 13px;
+  color: #5d4037;
+  line-height: 1.5;
+}
+
+.sc-unknown-icon {
+  flex-shrink: 0;
+  font-size: 15px;
+  line-height: 1.5;
+}
+
 /* ── Empty state ── */
 .score-empty {
   padding: 24px;

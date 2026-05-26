@@ -27,11 +27,11 @@ public class TransactionService {
     private final EmissionFactorRepository emissionFactorRepository;
 
     private static final Map<PaymentType, Double> DEFAULT_FACTORS = new EnumMap<>(Map.of(
-        PaymentType.PHYSICAL, 500.0,
-        PaymentType.TED,      150.0,
-        PaymentType.PIX,        5.0,
-        PaymentType.NFC,        3.0,
-        PaymentType.UNKNOWN,  500.0
+        PaymentType.PHYSICAL, 0.98,
+        PaymentType.TED,      0.13,
+        PaymentType.PIX,      0.13,
+        PaymentType.NFC,      0.85,
+        PaymentType.UNKNOWN,  0.98
     ));
 
     public List<TransactionDTO> getHistory(Long companyId, LocalDate startDate, LocalDate endDate) {

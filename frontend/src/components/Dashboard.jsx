@@ -162,7 +162,10 @@ export default function Dashboard() {
 
           <section className="dashboard-section">
             <h2>Score de sustentabilidade</h2>
-            <ScoreCard score={score} />
+            <ScoreCard
+              score={score}
+              unknownCount={transactions.filter(tx => tx.paymentType === 'UNKNOWN').length}
+            />
           </section>
 
           <section className="dashboard-section">
