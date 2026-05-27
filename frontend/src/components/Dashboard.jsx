@@ -6,6 +6,9 @@ import arvoreIcon from '../assets/Arvore.svg';
 import maoIcon from '../assets/Mao.svg';
 import icFolha from '../assets/ic-folha.svg';
 import icFolha1 from '../assets/ic-folha-1.svg';
+import pixIcon from '../assets/Pix.svg';
+import nfcIcon from '../assets/NFC.svg';
+import transacoesIcon from '../assets/transacoes.svg';
 import './Dashboard.css';
 
 // ── helpers ───────────────────────────────────────────────────────────────────
@@ -138,25 +141,9 @@ const NAV_ICONS = {
 };
 
 const PAYMENT_TYPES = [
-  {
-    key: 'PIX', label: 'PIX',
-    icon: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#4F8C5A" strokeWidth="2">
-      <path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/>
-    </svg>,
-  },
-  {
-    key: 'NFC', label: 'NFC',
-    icon: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#4F8C5A" strokeWidth="2">
-      <path d="M5 12.55a11 11 0 0 1 14.08 0"/><path d="M1.42 9a16 16 0 0 1 21.16 0"/>
-      <path d="M8.53 16.11a6 6 0 0 1 6.95 0"/><circle cx="12" cy="20" r="1" fill="#4F8C5A"/>
-    </svg>,
-  },
-  {
-    key: 'TED', label: 'Transferência bancária',
-    icon: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#4F8C5A" strokeWidth="2">
-      <rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/>
-    </svg>,
-  },
+  { key: 'PIX', label: 'PIX',                   icon: <img src={pixIcon}        alt="PIX"                   width="22" height="22" /> },
+  { key: 'NFC', label: 'NFC',                   icon: <img src={nfcIcon}        alt="NFC"                   width="18" height="22" /> },
+  { key: 'TED', label: 'Transferência bancária', icon: <img src={transacoesIcon} alt="Transferência bancária" width="22" height="22" /> },
 ];
 
 const PERIODS = [
@@ -436,11 +423,13 @@ export default function Dashboard() {
                       return (
                         <div key={key} className="fg-co2type-item">
                           <div className="fg-co2type-icon">{icon}</div>
-                          <div className="fg-co2type-info">
-                            <span className="fg-co2type-name">{label}</span>
-                            {d && <span className="fg-co2type-count">{d.count.toLocaleString('pt-BR')} transações</span>}
+                          <span className="fg-co2type-name">{label}</span>
+                          <div className="fg-co2type-spacer" />
+                          <span className="fg-co2type-val">{d ? fmtCo2(d.co2) : '0g'}</span>
+                          <div className="fg-co2type-count-col">
+                            <span className="fg-co2type-count-num">{d ? d.count.toLocaleString('pt-BR') : '0'}</span>
+                            <span className="fg-co2type-count-label">transações</span>
                           </div>
-                          <span className="fg-co2type-val">{d ? fmtCo2(d.co2) : '—'}</span>
                         </div>
                       );
                     })}
