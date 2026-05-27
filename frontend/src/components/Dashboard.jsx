@@ -9,6 +9,13 @@ import icFolha1 from '../assets/ic-folha-1.svg';
 import pixIcon from '../assets/Pix.svg';
 import nfcIcon from '../assets/NFC.svg';
 import transacoesIcon from '../assets/transacoes.svg';
+import homeIcon from '../assets/HomeIcon.svg';
+import folhaIcon from '../assets/FolhaIcon.svg';
+import simuladorIcon from '../assets/SimuladorIcon.svg';
+import cenariosIcon from '../assets/CenariosIcon.svg';
+import relatorioIcon from '../assets/RelatorioIcon.svg';
+import metasIcon from '../assets/MetasIcon.svg';
+import configuracoesIcon from '../assets/ConfihuraçõesIcon.svg';
 import './Dashboard.css';
 
 // ── helpers ───────────────────────────────────────────────────────────────────
@@ -103,41 +110,20 @@ function HistChart({ data }) {
 // ── Nav ───────────────────────────────────────────────────────────────────────
 const NAV_ITEMS = [
   { label: 'Dashboard',     active: true  },
-  { label: 'Transações',    active: false },
+  { label: 'Simulador',     active: false },
+  { label: 'Cenários',      active: false },
   { label: 'Relatórios',    active: false },
-  { label: 'Benchmark',     active: false },
   { label: 'Metas',         active: false },
   { label: 'Configurações', active: false },
 ];
 
 const NAV_ICONS = {
-  Dashboard:
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-      <rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/>
-      <rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/>
-    </svg>,
-  Transações:
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-      <path d="M3 6h18M3 12h18M3 18h18"/>
-    </svg>,
-  Relatórios:
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-      <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
-      <polyline points="14 2 14 8 20 8"/>
-    </svg>,
-  Benchmark:
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-      <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
-    </svg>,
-  Metas:
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-      <circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/>
-    </svg>,
-  Configurações:
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-      <circle cx="12" cy="12" r="3"/>
-      <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
-    </svg>,
+  Dashboard:   <img src={homeIcon}         alt="Dashboard"    width="18" height="18" />,
+  Simulador:   <img src={simuladorIcon}    alt="Simulador"    width="18" height="18" />,
+  Cenários:    <img src={cenariosIcon}     alt="Cenários"     width="18" height="18" />,
+  Relatórios:  <img src={relatorioIcon}    alt="Relatórios"   width="18" height="18" />,
+  Metas:       <img src={metasIcon}        alt="Metas"        width="18" height="18" />,
+  Configurações: <img src={configuracoesIcon} alt="Configurações" width="18" height="18" />,
 };
 
 const PAYMENT_TYPES = [
@@ -263,16 +249,18 @@ export default function Dashboard() {
               onClick={e => e.preventDefault()}
             >
               <span className="fg-nav-icon">{NAV_ICONS[item.label]}</span>
-              {item.label}
+              <span className="fg-nav-label">{item.label}</span>
             </a>
           ))}
         </nav>
 
-        <div className="fg-sidebar-footer">
-          <div className="fg-avatar fg-avatar--sm">JS</div>
-          <div>
-            <div className="fg-sidebar-name">João Silva</div>
-            <div className="fg-sidebar-role">Gestor</div>
+        <div className="fg-sidebar-level-card">
+          <div className="fg-sidebar-level-title">
+            <img src={folhaIcon} alt="" width="16" height="16" />
+            <span className="fg-sidebar-level-title-text">Nível de Sustentabilidade</span>
+          </div>
+          <div className="fg-sidebar-level-badge">
+            <span className="fg-sidebar-level-badge-text">{lvlData.name}</span>
           </div>
         </div>
       </aside>
@@ -412,7 +400,7 @@ export default function Dashboard() {
                 <div className="fg-card fg-card--co2type">
 
                   <div className="fg-card-head">
-                    <div>
+                    <div className="fg-co2type-head-text">
                       <div className="fg-card-title">CO₂ evitado por tipo de pagamento</div>
                       <div className="fg-card-sub">Baseado nas transações do período selecionado</div>
                     </div>
