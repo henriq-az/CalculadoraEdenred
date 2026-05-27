@@ -2,6 +2,10 @@ import { useState, useEffect } from 'react';
 import { fetchHistory, fetchScore, fetchImpact, exportImpactReport } from '../services/api';
 import edenredLogo from '../assets/Edenred_Logo.svg';
 import notificacaoIcon from '../assets/notificacao.svg';
+import arvoreIcon from '../assets/Arvore.svg';
+import maoIcon from '../assets/Mao.svg';
+import icFolha from '../assets/ic-folha.svg';
+import icFolha1 from '../assets/ic-folha-1.svg';
 import './Dashboard.css';
 
 // ── helpers ───────────────────────────────────────────────────────────────────
@@ -51,17 +55,7 @@ function getLevel(s) {
   return 0;
 }
 
-// ── SVG ───────────────────────────────────────────────────────────────────────
-function TreeSVG() {
-  return (
-    <svg viewBox="0 0 84 124" width="84" height="124" aria-hidden="true">
-      <rect x="37" y="100" width="10" height="24" fill="#8B4513" rx="2" />
-      <polygon points="42,64 12,100 72,100" fill="#2D6A4F" />
-      <polygon points="42,40 16,72 68,72" fill="#52B788" />
-      <polygon points="42,18 20,50 64,50" fill="#74C69D" />
-    </svg>
-  );
-}
+// ── Tree Icon ────────────────────────────────────────────────────────────────
 
 // ── Chart ─────────────────────────────────────────────────────────────────────
 const HIST_MOCK = [
@@ -388,39 +382,48 @@ export default function Dashboard() {
               {/* MID ROW */}
               <div className="fg-mid-row">
 
-                <div className="fg-card">
-                  <div className="fg-card-head">
+                <div className="fg-card fg-card--progress">
+                  <div className="fg-card-head fg-card-head--progress">
                     <div>
-                      <div className="fg-card-title">Progresso de Sustentabilidade</div>
-                      <div className="fg-card-sub">Seu nível atual e evolução</div>
+                      <div className="fg-card-title fg-card-title--progress">Progresso de Sustentabilidade</div>
+                      <div className="fg-card-sub fg-card-sub--progress">Seu nível de evolução</div>
                     </div>
-                    <span className="fg-badge-green">{lvlData.badge}</span>
                   </div>
+                  <div className="fg-level-badge">
+                    <div className="fg-level-badge-icon">
+                      <img src={icFolha1} alt="" className="fg-eco-folha fg-eco-folha--left" />
+                      <img src={icFolha}  alt="" className="fg-eco-folha fg-eco-folha--right" />
+                      <img src={maoIcon}  alt="" className="fg-eco-mao" />
+                    </div>
+                    <span className="fg-level-badge-label">{lvlData.badge}</span>
+                  </div>
+                  <img src={arvoreIcon} alt="Árvore" width="84" height="125" className="fg-tree-img" />
                   <div className="fg-progress-body">
-                    <div className="fg-tree-col"><TreeSVG /></div>
                     <div className="fg-score-col">
                       <div className="fg-score-big">
                         <span className="fg-score-num">{rawScore}</span>
                         <span className="fg-score-den">/100</span>
                       </div>
-                      <span className="fg-score-sub">Score de Sustentabilidade</span>
-                      <div className="fg-prog-row">
-                        <div className="fg-prog-track">
-                          <div className="fg-prog-fill" style={{ width: `${rawScore}%` }} />
-                        </div>
-                        <span className="fg-prog-pct">{rawScore}%</span>
-                      </div>
-                      {nextLevel && (
-                        <div className="fg-next-level">
-                          <span className="fg-next-tag">Próximo nível:</span>
-                          <span className="fg-next-desc">{nextLevel.name} aos {nextLevel.min} pontos</span>
-                        </div>
-                      )}
+                      <div className="fg-score-sub">Score de Sustentabilidade</div>
                     </div>
                   </div>
+                  <div className="fg-prog-row">
+                    <div className="fg-prog-track">
+                      <div className="fg-prog-fill" style={{ width: `${rawScore}%` }} />
+                      <div className="fg-prog-empty" style={{ width: `${100 - rawScore}%` }} />
+                    </div>
+                  </div>
+                  <span className="fg-prog-pct">{rawScore}%</span>
+                  {nextLevel && (
+                    <div className="fg-next-level">
+                      <span className="fg-next-tag">Próximo nível:</span>
+                      <span className="fg-next-desc">{nextLevel.name} aos {nextLevel.min} pontos</span>
+                    </div>
+                  )}
                 </div>
 
                 <div className="fg-card fg-card--co2type">
+
                   <div className="fg-card-head">
                     <div>
                       <div className="fg-card-title">CO₂ evitado por tipo de pagamento</div>
