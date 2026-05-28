@@ -15,6 +15,22 @@
   --heading: 'Ubuntu', system-ui, sans-serif;
   --mono: ui-monospace, Consolas, monospace;
 
+  /* ── Design tokens ─────────────────────────────────────────── */
+  /* Tipografia (escala fixa do design system) */
+  --text-display: 50px;
+  --text-2xl: 25px;
+  --text-xl: 19px;
+  --text-lg: 17px;
+  --text-md: 15px;
+  --text-sm: 13px;
+  --text-xs: 11px;
+
+  /* Cores da marca */
+  --color-accent: #E63027;
+  --color-gradient-start: #FF007D;
+  --color-gradient-end:   #F72717;
+  --gradient-primary: linear-gradient(90deg, var(--color-gradient-start) 0%, var(--color-gradient-end) 100%);
+
   font: 18px/145% var(--sans);
   letter-spacing: 0.18px;
   color-scheme: light;

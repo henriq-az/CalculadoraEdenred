@@ -32,7 +32,7 @@
   background: #f4f3ec;
   border: 1px solid #e5e4e7;
   border-radius: 20px;
-  font-size: 13px;
+  font-size: var(--text-sm);
   font-weight: 600;
   color: #2e7d32;
 }
@@ -47,7 +47,7 @@
 }
 
 .sc-badge-count {
-  font-size: 11px;
+  font-size: var(--text-xs);
   font-weight: 400;
   color: #388e3c;
   margin-left: 2px;
@@ -73,7 +73,7 @@
 }
 
 .sc-subtitle {
-  font-size: 13px;
+  font-size: var(--text-sm);
   color: #6b6375;
 }
 
@@ -169,7 +169,7 @@
 }
 
 .sc-lvl-label {
-  font-size: 11px;
+  font-size: var(--text-xs);
   color: #6b6375;
   font-weight: 500;
   text-transform: uppercase;
@@ -190,14 +190,14 @@
   background: #fff8e1;
   border: 1px solid #ffe082;
   border-radius: 8px;
-  font-size: 13px;
+  font-size: var(--text-sm);
   color: #5d4037;
   line-height: 1.5;
 }
 
 .sc-unknown-icon {
   flex-shrink: 0;
-  font-size: 15px;
+  font-size: var(--text-md);
   line-height: 1.5;
 }
 

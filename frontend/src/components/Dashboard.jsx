@@ -70,38 +70,104 @@ function getLevel(s) {
 
 // ── Chart ─────────────────────────────────────────────────────────────────────
 const HIST_MOCK = [
-  { month: 'Nov', value: 180 },
-  { month: 'Dez', value: 220 },
-  { month: 'Jan', value: 195 },
-  { month: 'Fev', value: 250 },
-  { month: 'Mar', value: 210 },
-  { month: 'Abr', value: 280 },
-  { month: 'Mai', value: 240 },
+  { month: 'Nov', value: 380 },
+  { month: 'Dez', value: 410 },
+  { month: 'Jan', value: 390 },
+  { month: 'Fev', value: 440 },
+  { month: 'Mar', value: 470 },
+  { month: 'Abr', value: 490 },
+  { month: 'Mai', value: 531 },
 ];
 
+function buildSmoothPath(pts) {
+  if (pts.length < 2) return '';
+  let d = `M ${pts[0][0]} ${pts[0][1]}`;
+  for (let i = 0; i < pts.length - 1; i++) {
+    const p0 = pts[i - 1] || pts[i];
+    const p1 = pts[i];
+    const p2 = pts[i + 1];
+    const p3 = pts[i + 2] || p2;
+    const t = 0.18;
+    const c1x = p1[0] + (p2[0] - p0[0]) * t;
+    const c1y = p1[1] + (p2[1] - p0[1]) * t;
+    const c2x = p2[0] - (p3[0] - p1[0]) * t;
+    const c2y = p2[1] - (p3[1] - p1[1]) * t;
+    d += ` C ${c1x} ${c1y}, ${c2x} ${c2y}, ${p2[0]} ${p2[1]}`;
+  }
+  return d;
+}
+
 function HistChart({ data }) {
+  const W = 520;
+  const H = 200;
+  const padX = 28;
+  const padTop = 32;
+  const padBottom = 44;
   const max = Math.max(...data.map(d => d.value));
-  const W = 420, H = 90;
+  const min = Math.min(...data.map(d => d.value));
+  const range = max - min || 1;
+  const innerW = W - padX * 2;
+  const innerH = H - padTop - padBottom;
+  const baselineY = H - padBottom;
+
   const pts = data.map((d, i) => [
-    (i / (data.length - 1)) * W,
-    H - (d.value / max) * (H - 10),
+    padX + (i / (data.length - 1)) * innerW,
+    padTop + (1 - (d.value - min) / range) * innerH,
   ]);
-  const line = pts.map(([x, y]) => `${x},${y}`).join(' ');
-  const area = `${pts[0][0]},${H} ${line} ${pts[pts.length - 1][0]},${H}`;
+
+  const path = buildSmoothPath(pts);
+
   return (
-    <svg viewBox={`0 0 ${W} ${H + 20}`} width="100%" style={{ display: 'block', overflow: 'visible' }}>
+    <svg
+      className="fg-hist"
+      viewBox={`0 0 ${W} ${H}`}
+      width="100%"
+      style={{ display: 'block', overflow: 'visible' }}
+    >
       <defs>
-        <linearGradient id="fg-histGrad" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stopColor="#FF007D" stopOpacity="0.18" />
-          <stop offset="100%" stopColor="#FF007D" stopOpacity="0.02" />
+        <linearGradient
+          id="fg-hist-gradient"
+          gradientUnits="userSpaceOnUse"
+          x1={padX}
+          y1="0"
+          x2={W - padX}
+          y2="0"
+        >
+          <stop offset="0%" className="fg-hist-grad-start" />
+          <stop offset="100%" className="fg-hist-grad-end" />
         </linearGradient>
       </defs>
-      <polygon points={area} fill="url(#fg-histGrad)" />
-      <polyline points={line} fill="none" stroke="#FF007D" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+
       {pts.map(([x, y], i) => (
-        <g key={i}>
-          <circle cx={x} cy={y} r="4" fill="#FF007D" />
-          <text x={x} y={H + 16} textAnchor="middle" fontSize="11" fill="#697282">{data[i].month}</text>
+        <line
+          key={`dash-${i}`}
+          className="fg-hist-dash"
+          x1={x}
+          y1={y + 6}
+          x2={x}
+          y2={baselineY - 2}
+        />
+      ))}
+
+      <line
+        className="fg-hist-axis"
+        x1={padX - 8}
+        y1={baselineY}
+        x2={W - padX + 8}
+        y2={baselineY}
+      />
+
+      <path className="fg-hist-line" d={path} />
+
+      {pts.map(([x, y], i) => (
+        <g key={`pt-${i}`}>
+          <circle className="fg-hist-dot" cx={x} cy={y} r="4.5" />
+          <text className="fg-hist-value" x={x} y={y - 12} textAnchor="middle">
+            {data[i].value}g
+          </text>
+          <text className="fg-hist-month" x={x} y={baselineY + 22} textAnchor="middle">
+            {data[i].month}
+          </text>
         </g>
       ))}
     </svg>
@@ -202,7 +268,7 @@ export default function Dashboard() {
     }
   }
 
-  const rawScore   = score?.score ?? 0;
+  const rawScore   = Number((score?.score ?? 0).toFixed(2));
   const lvlIdx     = getLevel(rawScore);
   const lvlData    = LEVELS[lvlIdx];
   const nextLevel  = lvlIdx < 2 ? LEVELS[lvlIdx + 1] : null;

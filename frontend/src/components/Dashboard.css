@@ -72,7 +72,7 @@
 
 .fg-nav-link--active {
   background: #FEF2F2;
-  color: #F72717;
+  color: var(--color-gradient-end);
   font-weight: 600;
 }
 
@@ -96,7 +96,7 @@
   margin: 6px 14px 10px;
   padding: 8px 14px 10px;
   border-radius: 14px;
-  background: linear-gradient(135deg, #FF007D 0%, #F72717 100%);
+  background: var(--gradient-primary);
   display: flex;
   flex-direction: column;
   gap: 8px;
@@ -167,7 +167,7 @@
   border-radius: 50%;
   background: #E62830;
   color: #fff;
-  font-size: 13px;
+  font-size: var(--text-sm);
   font-weight: 700;
   display: flex;
   align-items: center;
@@ -177,8 +177,8 @@
 
 .fg-avatar--sm { width: 34px; height: 34px; font-size: 12px; }
 
-.fg-sidebar-name { font-size: 13px; font-weight: 600; color: #101727; }
-.fg-sidebar-role { font-size: 11px; color: #697282; }
+.fg-sidebar-name { font-size: var(--text-sm); font-weight: 600; color: #101727; }
+.fg-sidebar-role { font-size: var(--text-xs); color: #697282; }
 
 /* ── Main ────────────────────────────────────────────────────────────────── */
 .fg-main {
@@ -272,7 +272,7 @@
 }
 
 .fg-tab--active {
-  background: linear-gradient(90deg, rgba(247,39,23,1) 0%, rgba(255,0,125,1) 100%);
+  background: var(--gradient-primary);
   color: #FFFFFF;
   border: none;
   border-radius: 30px;
@@ -334,7 +334,7 @@
 }
 
 .fg-loading { text-align: center; padding: 48px; color: #697282; }
-.fg-error   { padding: 12px 16px; background: #FEF2F2; color: #F72717; border: 1px solid #FECACA; border-radius: 8px; }
+.fg-error   { padding: 12px 16px; background: #FEF2F2; color: var(--color-gradient-end); border: 1px solid #FECACA; border-radius: 8px; }
 
 /* ── Toolbar ─────────────────────────────────────────────────────────────── */
 .fg-toolbar {
@@ -357,7 +357,7 @@
   padding: 4px 9px;
   border: 1px solid #E4E7EB;
   border-radius: 6px;
-  font-size: 13px;
+  font-size: var(--text-sm);
   font-family: inherit;
   color: #101727;
   width: 72px;
@@ -371,7 +371,7 @@
 }
 
 .fg-export-group  { display: flex; align-items: center; gap: 10px; }
-.fg-export-error  { font-size: 12px; color: #F72717; }
+.fg-export-error  { font-size: 12px; color: var(--color-gradient-end); }
 
 .fg-export-btn {
   padding: 7px 16px;
@@ -379,7 +379,7 @@
   border-radius: 7px;
   background: #E62830;
   color: #fff;
-  font-size: 13px;
+  font-size: var(--text-sm);
   font-weight: 600;
   cursor: pointer;
   font-family: inherit;
@@ -431,16 +431,16 @@
   align-items: flex-start;
 }
 
-.fg-kpi-label { font-size: 12px; color: #697282; font-weight: 500; }
+.fg-kpi-label { font-size: var(--text-xl); color: #697282; font-weight: 400; }
 .fg-kpi-value { font-size: 28px; font-weight: 700; color: #101727; line-height: 1.1; letter-spacing: -0.4px; }
-.fg-kpi-delta { font-size: 12px; font-weight: 500; color: #F72717; }
+.fg-kpi-delta { font-size: var(--text-md); font-weight: 400; color: var(--color-gradient-end); }
 
 .fg-kpi-card--digital .fg-kpi-label {
   display: block;
   width: 100%;
   font-family: 'Ubuntu', sans-serif;
   font-weight: 400;
-  font-size: 19px;
+  font-size: var(--text-xl);
   color: rgb(73, 85, 101);
   line-height: 21.48px;
   letter-spacing: 0;
@@ -451,7 +451,7 @@
   width: 100%;
   font-family: 'Ubuntu', sans-serif;
   font-weight: 400;
-  font-size: 19px;
+  font-size: var(--text-xl);
   color: #4A5565;
   line-height: 22.04px;
   letter-spacing: 0;
@@ -487,8 +487,8 @@
   text-align: left;
   font-family: 'Ubuntu', sans-serif;
   font-weight: 400;
-  font-size: 17px;
-  color: #F72717;
+  font-size: var(--text-md);
+  color: var(--color-gradient-end);
   line-height: 17.19px;
   letter-spacing: 0;
 }
@@ -511,7 +511,7 @@
   width: 100%;
   font-family: 'Ubuntu', sans-serif;
   font-weight: 400;
-  font-size: 19px;
+  font-size: var(--text-xl);
   color: rgb(73, 85, 101);
   line-height: 21.48px;
   letter-spacing: 0;
@@ -535,8 +535,8 @@
   text-align: left;
   font-family: 'Ubuntu', sans-serif;
   font-weight: 400;
-  font-size: 17px;
-  color: #F72717;
+  font-size: var(--text-md);
+  color: var(--color-gradient-end);
   line-height: 17.63px;
   letter-spacing: 0;
 }
@@ -546,9 +546,9 @@
   width: 100%;
   text-align: left;
   font-family: 'Ubuntu', sans-serif;
-  font-weight: 500;
-  font-size: 17px;
-  color: #F72717;
+  font-weight: 400;
+  font-size: var(--text-md);
+  color: var(--color-gradient-end);
   line-height: 17.63px;
   letter-spacing: 0;
 }
@@ -580,6 +580,7 @@
   display: flex;
   flex-direction: column;
   gap: 14px;
+  box-shadow: 0px 4px 5px rgba(0, 0, 0, 0.17);
 }
 
 .fg-card-head {
@@ -589,12 +590,12 @@
   gap: 10px;
 }
 
-.fg-card-title { font-size: 14px; font-weight: 700; color: #1A1A1A; line-height: 1.3; }
+.fg-card-title { font-size: var(--text-lg); font-weight: 500; color: #1A1A1A; line-height: 1.3; text-align: left; }
 
 .fg-card-title--comparativo {
   color: #000;
   font-family: 'Ubuntu', sans-serif;
-  font-size: 17px;
+  font-size: var(--text-lg);
   font-style: normal;
   font-weight: 500;
   line-height: normal;
@@ -603,7 +604,7 @@
 .fg-card-sub--comparativo {
   color: #6B7280;
   font-family: 'Ubuntu', sans-serif;
-  font-size: 15px;
+  font-size: var(--text-md);
   font-style: normal;
   font-weight: 400;
   line-height: 24px;
@@ -611,13 +612,13 @@
   padding-left: 0;
   text-align: left;
 }
-.fg-card-sub   { font-size: 12px; color: #697282; margin-top: 2px; }
+.fg-card-sub   { font-size: var(--text-md); font-weight: 400; color: #697282; margin-top: 2px; text-align: left; }
 
 /* ── Badges ──────────────────────────────────────────────────────────────── */
 .fg-badge-green {
   background: #EAF3DE;
   color: #4C7A25;
-  font-size: 11px;
+  font-size: var(--text-xs);
   font-weight: 600;
   padding: 3px 9px;
   border-radius: 20px;
@@ -631,10 +632,10 @@
   gap: 5px;
   padding: 2px 10px;
   border-radius: 50px;
-  background: linear-gradient(91deg, #FF007C 0.22%, #F8251D 99.85%);
+  background: var(--gradient-primary);
   color: #fff;
   font-family: 'Ubuntu', sans-serif;
-  font-size: 11.5px;
+  font-size: var(--text-xs);
   font-weight: 600;
   white-space: nowrap;
   flex-shrink: 0;
@@ -643,7 +644,7 @@
 .fg-badge-dark {
   background: #101727;
   color: #fff;
-  font-size: 11px;
+  font-size: var(--text-xs);
   font-weight: 600;
   padding: 3px 9px;
   border-radius: 20px;
@@ -667,8 +668,8 @@
 .fg-card-title--progress {
   display: block;
   font-family: 'Ubuntu', sans-serif;
-  font-size: 16px;
-  font-weight: 700;
+  font-size: var(--text-lg);
+  font-weight: 500;
   color: #101727;
   line-height: 1.3;
   margin: 0;
@@ -679,7 +680,7 @@
 .fg-card-sub--progress {
   display: block;
   font-family: 'Ubuntu', sans-serif;
-  font-size: 12px;
+  font-size: var(--text-md);
   font-weight: 400;
   color: #697282;
   margin: 0;
@@ -725,7 +726,7 @@
 
 .fg-level-badge-label {
   font-family: 'Ubuntu', sans-serif;
-  font-size: 11px;
+  font-size: var(--text-xs);
   font-weight: 600;
   color: #4C7A25;
   white-space: nowrap;
@@ -754,15 +755,15 @@
 .fg-score-big  { display: flex; align-items: baseline; gap: 2px; }
 .fg-score-num  {
   font-family: 'Ubuntu', sans-serif;
-  font-size: 64px;
+  font-size: var(--text-display);
   font-weight: 700;
   line-height: 1;
   letter-spacing: -1px;
-  color: #F72717;
+  color: var(--color-gradient-end);
 }
 .fg-score-den  {
   font-family: 'Ubuntu', sans-serif;
-  font-size: 24px;
+  font-size: var(--text-2xl);
   color: #9DA3AE;
   font-weight: 400;
 }
@@ -787,7 +788,7 @@
 
 .fg-prog-fill {
   height: 100%;
-  background: #F72717;
+  background: var(--gradient-primary);
   border-radius: 5px 0 0 5px;
   transition: width 0.5s ease;
   flex-shrink: 0;
@@ -805,7 +806,7 @@
   bottom: 72px;
   right: 22px;
   font-family: 'Ubuntu', sans-serif;
-  font-size: 12px;
+  font-size: var(--text-sm);
   font-weight: 700;
   color: #101727;
   white-space: nowrap;
@@ -814,7 +815,7 @@
 .fg-score-sub  {
   display: block;
   font-family: 'Ubuntu', sans-serif;
-  font-size: 12px;
+  font-size: var(--text-sm);
   font-weight: 400;
   color: #697282;
   margin-top: 3px;
@@ -832,13 +833,13 @@
 }
 .fg-next-tag   {
   font-family: 'Ubuntu', sans-serif;
-  font-size: 12px;
+  font-size: var(--text-sm);
   font-weight: 600;
-  color: #FF007D;
+  color: var(--color-gradient-start);
 }
 .fg-next-desc  {
   font-family: 'Ubuntu', sans-serif;
-  font-size: 12px;
+  font-size: var(--text-sm);
   font-weight: 400;
   color: #697282;
 }
@@ -869,7 +870,7 @@
   width: 50px;
   height: 50px;
   border-radius: 12px;
-  background: linear-gradient(135deg, #F72717 0%, #FF007D 100%);
+  background: var(--gradient-primary);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -878,7 +879,7 @@
 
 .fg-co2type-name {
   font-family: 'Ubuntu', sans-serif;
-  font-size: 13px;
+  font-size: var(--text-sm);
   font-style: normal;
   font-weight: 500;
   line-height: normal;
@@ -891,7 +892,7 @@
 
 .fg-co2type-val {
   font-family: 'Ubuntu', sans-serif;
-  font-size: 15px;
+  font-size: var(--text-md);
   font-style: normal;
   font-weight: 700;
   line-height: normal;
@@ -909,7 +910,7 @@
 
 .fg-co2type-count-num {
   font-family: 'Ubuntu', sans-serif;
-  font-size: 13px;
+  font-size: var(--text-sm);
   font-weight: 500;
   color: #697282;
   text-align: right;
@@ -917,7 +918,7 @@
 
 .fg-co2type-count-label {
   font-family: 'Ubuntu', sans-serif;
-  font-size: 11px;
+  font-size: var(--text-xs);
   font-weight: 400;
   color: #697282;
   text-align: right;
@@ -940,7 +941,7 @@
 .fg-compare-label {
   color: #000;
   font-family: 'Ubuntu', sans-serif;
-  font-size: 17px;
+  font-size: var(--text-lg);
   font-style: normal;
   font-weight: 400;
   line-height: 26.625px;
@@ -959,15 +960,15 @@
 
 .fg-compare-fill {
   height: 100%;
-  background: linear-gradient(91deg, #FF007C 0.22%, #F8251D 99.85%);
+  background: var(--gradient-primary);
   border-radius: 6px;
   transition: width 0.5s;
 }
 
-.fg-compare-fill--pink { background: linear-gradient(91deg, #FF007C 0.22%, #F8251D 99.85%); }
+.fg-compare-fill--pink { background: var(--gradient-primary); }
 
-.fg-compare-val { font-size: 13px; font-weight: 700; color: #101727; white-space: nowrap; min-width: 72px; text-align: right; }
-.fg-compare-val--pink { color: #FF007D; }
+.fg-compare-val { font-size: var(--text-sm); font-weight: 700; color: #101727; white-space: nowrap; min-width: 72px; text-align: right; }
+.fg-compare-val--pink { color: var(--color-gradient-start); }
 
 /* ── Benchmark ───────────────────────────────────────────────────────────── */
 .fg-benchmark { display: flex; flex-direction: column; gap: 10px; }
@@ -976,7 +977,7 @@
   position: relative;
   height: 14px;
   border-radius: 7px;
-  background: linear-gradient(90deg, #F72717 0%, #FACC15 50%, #4F8C5A 100%);
+  background: linear-gradient(90deg, var(--color-gradient-end) 0%, #FACC15 50%, #4F8C5A 100%);
 }
 
 .fg-bench-indicator {
@@ -994,14 +995,53 @@
 .fg-bench-axis {
   display: flex;
   justify-content: space-between;
-  font-size: 11px;
+  font-size: var(--text-xs);
   color: #697282;
 }
 
-.fg-bench-desc { font-size: 13px; font-weight: 600; color: #101727; margin: 0; }
+.fg-bench-desc { font-size: var(--text-sm); font-weight: 600; color: #101727; margin: 0; }
 
 /* ── Chart ───────────────────────────────────────────────────────────────── */
 .fg-chart-wrap { padding: 2px 0; }
+
+.fg-hist-dash {
+  stroke: #C9CED6;
+  stroke-width: 1;
+  stroke-dasharray: 3 4;
+}
+
+.fg-hist-axis {
+  stroke: #C9CED6;
+  stroke-width: 1;
+}
+
+.fg-hist-line {
+  fill: none;
+  stroke: url(#fg-hist-gradient);
+  stroke-width: 3;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.fg-hist-dot {
+  fill: url(#fg-hist-gradient);
+}
+
+.fg-hist-grad-start { stop-color: var(--color-gradient-start); }
+.fg-hist-grad-end   { stop-color: var(--color-gradient-end); }
+
+.fg-hist-value {
+  font-family: 'Ubuntu', sans-serif;
+  font-size: var(--text-sm);
+  font-weight: 700;
+  fill: #1F2533;
+}
+
+.fg-hist-month {
+  font-family: 'Ubuntu', sans-serif;
+  font-size: var(--text-sm);
+  fill: #697282;
+}
 
 /* ── Impact list ─────────────────────────────────────────────────────────── */
 .fg-impact-list { display: flex; flex-direction: column; gap: 12px; }
@@ -1016,8 +1056,8 @@
 
 .fg-impact-item:last-child { border-bottom: none; padding-bottom: 0; }
 
-.fg-impact-label { flex: 1; font-size: 13px; color: #697282; }
-.fg-impact-val   { font-size: 14px; font-weight: 700; color: #F72717; }
+.fg-impact-label { flex: 1; font-size: var(--text-sm); color: #697282; }
+.fg-impact-val   { font-size: 14px; font-weight: 700; color: var(--color-gradient-end); }
 
 /* ── Responsive ──────────────────────────────────────────────────────────── */
 @media (max-width: 1100px) {
