@@ -37,6 +37,21 @@ export async function fetchImpact(companyId, period) {
   return res.json();
 }
 
+export async function fetchScenario(id) {
+  const res = await fetch(`/cenarios/${id}`);
+  if (!res.ok) {
+    let message = `Erro ao buscar cenário: ${res.status}`;
+    try {
+      const data = await res.json();
+      if (data?.message) message = data.message;
+    } catch {
+      // keep fallback message
+    }
+    throw new Error(message);
+  }
+  return res.json();
+}
+
 export async function exportImpactReport(payload) {
   const res = await fetch('/calculos/exportar', {
     method: 'POST',
