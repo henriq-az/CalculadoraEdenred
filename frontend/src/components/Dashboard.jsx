@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { fetchHistory, fetchScore, fetchImpact, exportImpactReport } from '../services/api';
+import { fetchHistory, fetchHistoryForYear, fetchScore, fetchImpact, exportImpactReport } from '../services/api';
 import edenredLogo from '../assets/Edenred_Logo.svg';
 import notificacaoIcon from '../assets/notificacao.svg';
 import arvoreIcon from '../assets/Arvore.svg';
@@ -69,15 +69,29 @@ function getLevel(s) {
 // ── Tree Icon ────────────────────────────────────────────────────────────────
 
 // ── Chart ─────────────────────────────────────────────────────────────────────
-const HIST_MOCK = [
-  { month: 'Nov', value: 380 },
-  { month: 'Dez', value: 410 },
-  { month: 'Jan', value: 390 },
-  { month: 'Fev', value: 440 },
-  { month: 'Mar', value: 470 },
-  { month: 'Abr', value: 490 },
-  { month: 'Mai', value: 531 },
-];
+const PHYSICAL_CO2  = 0.98;
+const DIGITAL_TYPES = new Set(['PIX', 'NFC', 'TED']);
+const MONTHS_PT     = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
+
+function buildHistData(transactions, year) {
+  const today    = new Date();
+  const maxMonth = year === today.getFullYear() ? today.getMonth() : 11;
+  const totals   = Array(12).fill(0);
+  for (const tx of transactions) {
+    const date = new Date(tx.transactionDate);
+    if (date.getFullYear() !== year) continue;
+    const month = date.getMonth();
+    if (DIGITAL_TYPES.has(tx.paymentType)) {
+      totals[month] += Math.max(0, PHYSICAL_CO2 - (tx.co2Grams ?? 0));
+    }
+  }
+  return MONTHS_PT.slice(0, maxMonth + 1).map((month, i) => ({ month, value: +totals[i].toFixed(2) }));
+}
+
+function fmtHistValue(g) {
+  if (g >= 1000) return `${(g / 1000).toFixed(1)}kg`;
+  return `${g.toFixed(2)}g`;
+}
 
 function buildSmoothPath(pts) {
   if (pts.length < 2) return '';
@@ -98,11 +112,23 @@ function buildSmoothPath(pts) {
 }
 
 function HistChart({ data }) {
+  const [hoveredIndex, setHoveredIndex] = useState(null);
   const W = 520;
   const H = 200;
   const padX = 28;
   const padTop = 32;
   const padBottom = 44;
+
+  if (!data || data.length === 0) {
+    return (
+      <svg className="fg-hist" viewBox={`0 0 ${W} ${H}`} width="100%" style={{ display: 'block' }}>
+        <text x={W / 2} y={H / 2} textAnchor="middle" fill="#999" fontSize="14">
+          Sem dados no período
+        </text>
+      </svg>
+    );
+  }
+
   const max = Math.max(...data.map(d => d.value));
   const min = Math.min(...data.map(d => d.value));
   const range = max - min || 1;
@@ -160,11 +186,19 @@ function HistChart({ data }) {
       <path className="fg-hist-line" d={path} />
 
       {pts.map(([x, y], i) => (
-        <g key={`pt-${i}`}>
-          <circle className="fg-hist-dot" cx={x} cy={y} r="4.5" />
-          <text className="fg-hist-value" x={x} y={y - 12} textAnchor="middle">
-            {data[i].value}g
-          </text>
+        <g
+          key={`pt-${i}`}
+          onMouseEnter={() => setHoveredIndex(i)}
+          onMouseLeave={() => setHoveredIndex(null)}
+          style={{ cursor: 'default' }}
+        >
+          <circle cx={x} cy={y} r="16" fill="transparent" />
+          <circle className="fg-hist-dot" cx={x} cy={y} r={hoveredIndex === i ? 6.5 : 4.5} />
+          {hoveredIndex === i && (
+            <text className="fg-hist-value" x={x} y={y - 14} textAnchor="middle">
+              {fmtHistValue(data[i].value)}
+            </text>
+          )}
           <text className="fg-hist-month" x={x} y={baselineY + 22} textAnchor="middle">
             {data[i].month}
           </text>
@@ -212,6 +246,8 @@ export default function Dashboard() {
   const [impact, setImpact]               = useState(null);
   const [score, setScore]                 = useState(null);
   const [transactions, setTransactions]   = useState([]);
+  const [histChartData, setHistChartData] = useState([]);
+  const [histYear, setHistYear]           = useState(new Date().getFullYear());
   const [loading, setLoading]             = useState(false);
   const [error, setError]                 = useState(null);
   const [exportLoading, setExportLoading] = useState(false);
@@ -246,6 +282,16 @@ export default function Dashboard() {
     void load();
     return () => { cancelled = true; };
   }, [companyId, period]);
+
+  useEffect(() => {
+    if (!companyId) return;
+    let cancelled = false;
+    setHistChartData([]);
+    fetchHistoryForYear(companyId, histYear)
+      .then(txs => { if (!cancelled) setHistChartData(buildHistData(txs, histYear)); })
+      .catch(() => {});
+    return () => { cancelled = true; };
+  }, [companyId, histYear]);
 
   async function handleExport() {
     setExportError(null);
@@ -532,11 +578,28 @@ export default function Dashboard() {
                     <div className="fg-card-head">
                       <div>
                         <div className="fg-card-title">Histórico de CO₂ evitado</div>
-                        <div className="fg-card-sub">Últimos 7 meses</div>
+                        <div className="fg-card-sub">
+                          Janeiro a {histYear === new Date().getFullYear()
+                            ? MONTHS_PT[new Date().getMonth()]
+                            : 'Dezembro'} {histYear}
+                        </div>
+                      </div>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <button
+                          onClick={() => setHistYear(y => y - 1)}
+                          disabled={histYear <= 2020}
+                          style={{ background: 'none', border: '1px solid #ddd', borderRadius: '6px', padding: '4px 10px', cursor: 'pointer', fontSize: '16px', lineHeight: 1 }}
+                        >‹</button>
+                        <span style={{ fontWeight: 600, fontSize: '14px', minWidth: '36px', textAlign: 'center' }}>{histYear}</span>
+                        <button
+                          onClick={() => setHistYear(y => y + 1)}
+                          disabled={histYear >= new Date().getFullYear()}
+                          style={{ background: 'none', border: '1px solid #ddd', borderRadius: '6px', padding: '4px 10px', cursor: 'pointer', fontSize: '16px', lineHeight: 1 }}
+                        >›</button>
                       </div>
                     </div>
                     <div className="fg-chart-wrap">
-                      <HistChart data={HIST_MOCK} />
+                      <HistChart data={histChartData} />
                     </div>
                   </div>
 

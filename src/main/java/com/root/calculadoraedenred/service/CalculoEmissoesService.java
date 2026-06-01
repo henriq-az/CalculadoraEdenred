@@ -52,6 +52,7 @@ public class CalculoEmissoesService {
         return new CalculoResponse(
                 request.getEmpresaId(),
                 totalGramas,
+
                 totalGramas / 1000.0,
                 detalhamento
         );
