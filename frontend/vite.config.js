@@ -7,6 +7,7 @@ export default defineConfig({
     proxy: {
       '/api': 'http://localhost:8080',
       '/calculos': 'http://localhost:8080',
+      '/cenarios': 'http://localhost:8080',
     },
   },
 })

@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { fetchHistory, fetchScore, fetchImpact, exportImpactReport } from '../services/api';
+import { fetchHistory, fetchScore, fetchImpact, fetchScenario, exportImpactReport } from '../services/api';
 import edenredLogo from '../assets/Edenred_Logo.svg';
 import notificacaoIcon from '../assets/notificacao.svg';
 import arvoreIcon from '../assets/Arvore.svg';
@@ -31,7 +31,9 @@ function deriveDates(period) {
   } else if (period === 'yearly') {
     start = new Date(now.getFullYear(), 0, 1).toISOString().slice(0, 10);
   } else {
-    start = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().slice(0, 10);
+    const d = new Date(now);
+    d.setDate(d.getDate() - 30);
+    start = d.toISOString().slice(0, 10);
   }
   return { start, end };
 }
@@ -64,6 +66,46 @@ function getLevel(s) {
   if (s >= 67) return 2;
   if (s >= 34) return 1;
   return 0;
+}
+
+function buildCategoryRanking(transactions) {
+  const byCategory = transactions.reduce((acc, tx) => {
+    const category = tx.category || 'OUTROS';
+    if (!acc[category]) acc[category] = [];
+    acc[category].push(tx);
+    return acc;
+  }, {});
+
+  return Object.entries(byCategory).map(([category, items]) => {
+    const currentCo2 = items.reduce((sum, tx) => sum + (tx.co2Grams ?? 0), 0);
+    const physicalCount = items.filter(tx => tx.paymentType === 'PHYSICAL').length;
+    const digitalCo2 = items
+      .filter(tx => tx.paymentType !== 'PHYSICAL' && tx.paymentType !== 'UNKNOWN')
+      .reduce((sum, tx) => sum + (tx.co2Grams ?? 0), 0);
+
+    const options = [
+      { paymentType: 'PIX', factor: 0.13 },
+      { paymentType: 'NFC', factor: 0.85 },
+      { paymentType: 'TED', factor: 0.13 },
+      { paymentType: 'WALLET', factor: 0.12 },
+      { paymentType: 'QR', factor: 0.05 },
+    ].map(option => {
+      const projectedCo2 = digitalCo2 + (physicalCount * option.factor);
+      return {
+        paymentType: option.paymentType,
+        projectedCo2,
+        savedCo2: currentCo2 - projectedCo2,
+      };
+    }).sort((a, b) => a.projectedCo2 - b.projectedCo2);
+
+    return {
+      category,
+      currentCo2,
+      physicalCount,
+      options,
+      bestOption: options[0] || null,
+    };
+  });
 }
 
 // ── Tree Icon ────────────────────────────────────────────────────────────────
@@ -176,26 +218,26 @@ function HistChart({ data }) {
 
 // ── Nav ───────────────────────────────────────────────────────────────────────
 const NAV_ITEMS = [
-  { label: 'Dashboard',     active: true  },
-  { label: 'Simulador',     active: false },
-  { label: 'Cenários',      active: false },
-  { label: 'Relatórios',    active: false },
-  { label: 'Metas',         active: false },
-  { label: 'Configurações', active: false },
+  { label: 'Dashboard'     },
+  { label: 'Simulador'     },
+  { label: 'Cenários'      },
+  { label: 'Relatórios'    },
+  { label: 'Metas'         },
+  { label: 'Configurações' },
 ];
 
 const NAV_ICONS = {
-  Dashboard:   <img src={homeIcon}         alt="Dashboard"    width="18" height="18" />,
-  Simulador:   <img src={simuladorIcon}    alt="Simulador"    width="18" height="18" />,
-  Cenários:    <img src={cenariosIcon}     alt="Cenários"     width="18" height="18" />,
-  Relatórios:  <img src={relatorioIcon}    alt="Relatórios"   width="18" height="18" />,
-  Metas:       <img src={metasIcon}        alt="Metas"        width="18" height="18" />,
-  Configurações: <img src={configuracoesIcon} alt="Configurações" width="18" height="18" />,
+  Dashboard:   <img src={homeIcon}            alt="Dashboard"     width="18" height="18" />,
+  Simulador:   <img src={simuladorIcon}       alt="Simulador"     width="18" height="18" />,
+  Cenários:    <img src={cenariosIcon}        alt="Cenários"      width="18" height="18" />,
+  Relatórios:  <img src={relatorioIcon}       alt="Relatórios"    width="18" height="18" />,
+  Metas:       <img src={metasIcon}           alt="Metas"         width="18" height="18" />,
+  'Configurações': <img src={configuracoesIcon} alt="Configurações" width="18" height="18" />,
 };
 
 const PAYMENT_TYPES = [
-  { key: 'PIX', label: 'PIX',                   icon: <img src={pixIcon}        alt="PIX"                   width="22" height="22" /> },
-  { key: 'NFC', label: 'NFC',                   icon: <img src={nfcIcon}        alt="NFC"                   width="18" height="22" /> },
+  { key: 'PIX', label: 'PIX', icon: <img src={pixIcon} alt="PIX" width="22" height="22" /> },
+  { key: 'NFC', label: 'NFC', icon: <img src={nfcIcon} alt="NFC" width="18" height="22" /> },
   { key: 'TED', label: 'Transferência bancária', icon: <img src={transacoesIcon} alt="Transferência bancária" width="22" height="22" /> },
 ];
 
@@ -208,7 +250,12 @@ const PERIODS = [
 // ── Component ─────────────────────────────────────────────────────────────────
 export default function Dashboard() {
   const [companyId, setCompanyId]         = useState('1');
+  const [activePage, setActivePage]       = useState('Dashboard');
   const [period, setPeriod]               = useState('monthly');
+  const [scenarioId, setScenarioId]       = useState('1');
+  const [scenarioData, setScenarioData]   = useState(null);
+  const [scenarioLoading, setScenarioLoading] = useState(false);
+  const [scenarioError, setScenarioError] = useState(null);
   const [impact, setImpact]               = useState(null);
   const [score, setScore]                 = useState(null);
   const [transactions, setTransactions]   = useState([]);
@@ -268,6 +315,20 @@ export default function Dashboard() {
     }
   }
 
+  async function handleLoadScenario() {
+    setScenarioError(null);
+    setScenarioLoading(true);
+    try {
+      const data = await fetchScenario(scenarioId);
+      setScenarioData(data);
+    } catch (err) {
+      setScenarioData(null);
+      setScenarioError(err.message);
+    } finally {
+      setScenarioLoading(false);
+    }
+  }
+
   const rawScore   = Number((score?.score ?? 0).toFixed(2));
   const lvlIdx     = getLevel(rawScore);
   const lvlData    = LEVELS[lvlIdx];
@@ -298,6 +359,8 @@ export default function Dashboard() {
   const redPct  = avgPhys > 0 ? Math.round((1 - avgDig / avgPhys) * 100) : 95;
   const benchPct = digitalPct || 72;
 
+  const categoryRanking = buildCategoryRanking(transactions);
+
   return (
     <div className="fg-layout">
 
@@ -312,8 +375,11 @@ export default function Dashboard() {
             <a
               key={item.label}
               href="#"
-              className={`fg-nav-link${item.active ? ' fg-nav-link--active' : ''}`}
-              onClick={e => e.preventDefault()}
+              className={`fg-nav-link${activePage === item.label ? ' fg-nav-link--active' : ''}`}
+              onClick={e => {
+                e.preventDefault();
+                setActivePage(item.label);
+              }}
             >
               <span className="fg-nav-icon">{NAV_ICONS[item.label]}</span>
               <span className="fg-nav-label">{item.label}</span>
@@ -379,7 +445,7 @@ export default function Dashboard() {
 {loading && <div className="fg-loading">Carregando…</div>}
           {error   && <div className="fg-error">{error}</div>}
 
-          {!loading && !error && (
+          {!loading && !error && activePage === 'Dashboard' && (
             <>
               {/* KPI ROW */}
               <div className="fg-kpi-row">
@@ -575,6 +641,59 @@ export default function Dashboard() {
                 </div>
               </div>
             </>
+          )}
+
+          {!loading && !error && activePage === 'Simulador' && (
+            <div className="fg-card">
+              <div className="fg-card-head">
+                <div>
+                  <div className="fg-card-title">Simulador</div>
+                  <div className="fg-card-sub">Digite um ID para buscar um cenário salvo.</div>
+                </div>
+              </div>
+              <div style={{ padding: 16 }}>
+                <p><strong>ActivePage:</strong> {activePage}</p>
+                <div style={{ display: 'flex', gap: 12, alignItems: 'center', margin: '12px 0 20px' }}>
+                  <label htmlFor="scenario-id"><strong>ID do cenário:</strong></label>
+                  <input
+                    id="scenario-id"
+                    value={scenarioId}
+                    onChange={e => setScenarioId(e.target.value)}
+                    placeholder="Ex: 1"
+                    style={{ padding: '8px 10px', borderRadius: 8, border: '1px solid #cfd8cf', minWidth: 120 }}
+                  />
+                  <button
+                    type="button"
+                    className="fg-tab fg-tab--active"
+                    onClick={handleLoadScenario}
+                    disabled={scenarioLoading}
+                  >
+                    {scenarioLoading ? 'Buscando...' : 'Buscar cenário'}
+                  </button>
+                </div>
+
+                {scenarioError && <div className="fg-error" style={{ marginBottom: 12 }}>{scenarioError}</div>}
+
+                {scenarioData ? (
+                  <div className="fg-card" style={{ marginTop: 16 }}>
+                    <div className="fg-card-head">
+                      <div>
+                        <div className="fg-card-title">{scenarioData.nome}</div>
+                        <div className="fg-card-sub">ID {scenarioData.id} · Empresa {scenarioData.empresaId}</div>
+                      </div>
+                    </div>
+                    <div style={{ padding: 16 }}>
+                      <p><strong>Emissões atuais:</strong> {fmtCo2(scenarioData.emissoesAtuaisGramas)}</p>
+                      <p><strong>Emissões simuladas:</strong> {fmtCo2(scenarioData.emissoesSimuladasGramas)}</p>
+                      <p><strong>Economia:</strong> {fmtCo2(scenarioData.economiaGramas)} ({scenarioData.percentualReducao?.toFixed?.(2) ?? scenarioData.percentualReducao}% redução)</p>
+                      <p><strong>Criado em:</strong> {scenarioData.criadoEm}</p>
+                    </div>
+                  </div>
+                ) : (
+                  <p>Use o campo acima para carregar um cenário salvo pelo ID.</p>
+                )}
+              </div>
+            </div>
           )}
         </main>
       </div>
