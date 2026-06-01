@@ -89,7 +89,7 @@ public class TransactionService {
         LocalDate hoje = LocalDate.now();
         LocalDate start = switch (period) {
             case WEEKLY  -> hoje.minusDays(7);
-            case MONTHLY -> hoje.minusDays(30);
+            case MONTHLY -> hoje.withDayOfMonth(1);
             case YEARLY  -> LocalDate.of(hoje.getYear(), 1, 1);
         };
 
@@ -98,7 +98,7 @@ public class TransactionService {
 
         String label = switch (period) {
             case WEEKLY  -> "últimos 7 dias";
-            case MONTHLY -> "últimos 30 dias";
+            case MONTHLY -> "mês atual";
             case YEARLY  -> "este ano";
         };
 

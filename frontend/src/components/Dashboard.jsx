@@ -31,9 +31,7 @@ function deriveDates(period) {
   } else if (period === 'yearly') {
     start = new Date(now.getFullYear(), 0, 1).toISOString().slice(0, 10);
   } else {
-    const d = new Date(now);
-    d.setDate(d.getDate() - 30);
-    start = d.toISOString().slice(0, 10);
+    start = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().slice(0, 10);
   }
   return { start, end };
 }
