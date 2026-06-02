@@ -52,6 +52,31 @@ export async function fetchImpact(companyId, period) {
   return res.json();
 }
 
+export async function saveScenario(nome, simulacao) {
+  const res = await fetch('/cenarios', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ nome, simulacao }),
+  });
+  if (!res.ok) {
+    let message = 'Erro ao salvar cenário.';
+    try {
+      const data = await res.json();
+      if (data?.message) message = data.message;
+    } catch {
+      // keep fallback message
+    }
+    throw new Error(message);
+  }
+  return res.json();
+}
+
+export async function listCenarios(companyId) {
+  const res = await fetch(`/cenarios?empresaId=${companyId}`);
+  if (!res.ok) throw new Error(`Erro ao listar cenários: ${res.status}`);
+  return res.json();
+}
+
 export async function fetchScenario(id) {
   const res = await fetch(`/cenarios/${id}`);
   if (!res.ok) {

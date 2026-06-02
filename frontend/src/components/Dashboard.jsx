@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { fetchHistory, fetchHistoryForMonth, fetchHistoryForYear, fetchScore, fetchImpact, fetchScenario, exportImpactReport } from '../services/api';
+import { fetchHistory, fetchHistoryForMonth, fetchHistoryForYear, fetchScore, fetchImpact, fetchScenario, saveScenario, exportImpactReport } from '../services/api';
 import edenredLogo from '../assets/Edenred_Logo.svg';
 import notificacaoIcon from '../assets/notificacao.svg';
 import arvoreIcon from '../assets/Arvore.svg';
@@ -329,6 +329,10 @@ export default function Dashboard() {
   const [error, setError]                 = useState(null);
   const [exportLoading, setExportLoading] = useState(false);
   const [exportError, setExportError]     = useState(null);
+  const [saveNome, setSaveNome]           = useState('');
+  const [saveLoading, setSaveLoading]     = useState(false);
+  const [saveError, setSaveError]         = useState(null);
+  const [saveSuccess, setSaveSuccess]     = useState(null);
 
   useEffect(() => {
     if (!companyId) return;
@@ -394,6 +398,31 @@ export default function Dashboard() {
       setExportError('Não foi possível gerar o relatório. Tente novamente.');
     } finally {
       setExportLoading(false);
+    }
+  }
+
+  async function handleSaveScenario() {
+    setSaveError(null);
+    setSaveSuccess(null);
+    if (!saveNome.trim()) {
+      setSaveError('Insira um nome para o cenário antes de salvar');
+      return;
+    }
+    setSaveLoading(true);
+    try {
+      const physicalCount = transactions.filter(tx => tx.paymentType === 'PHYSICAL').length || 100;
+      const simulacao = {
+        empresaId: Number(companyId),
+        distribuicaoAtual: [{ paymentType: 'PHYSICAL', quantidade: physicalCount }],
+        distribuicaoSimulada: [{ paymentType: 'PIX', quantidade: physicalCount }],
+      };
+      const saved = await saveScenario(saveNome.trim(), simulacao);
+      setSaveSuccess(`Cenário "${saved.nome}" salvo com sucesso!`);
+      setSaveNome('');
+    } catch (err) {
+      setSaveError(err.message);
+    } finally {
+      setSaveLoading(false);
     }
   }
 
@@ -792,6 +821,35 @@ export default function Dashboard() {
                 </div>
 
                 {scenarioError && <div className="fg-error" style={{ marginBottom: 12 }}>{scenarioError}</div>}
+
+                <hr style={{ margin: '24px 0', borderColor: '#eee' }} />
+
+                <div>
+                  <strong>Salvar novo cenário</strong>
+                  <p style={{ color: '#666', fontSize: 13, margin: '4px 0 12px' }}>
+                    Salva uma simulação de migração 100% PIX com base nas transações do período atual.
+                  </p>
+                  <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
+                    <input
+                      value={saveNome}
+                      onChange={e => { setSaveNome(e.target.value); setSaveError(null); setSaveSuccess(null); }}
+                      placeholder="Nome do cenário (obrigatório)"
+                      style={{ padding: '8px 10px', borderRadius: 8, border: saveError ? '1px solid #e53935' : '1px solid #cfd8cf', minWidth: 260, flex: 1 }}
+                    />
+                    <button
+                      type="button"
+                      className="fg-tab fg-tab--active"
+                      onClick={handleSaveScenario}
+                      disabled={saveLoading}
+                    >
+                      {saveLoading ? 'Salvando...' : 'Salvar cenário'}
+                    </button>
+                  </div>
+                  {saveError   && <div className="fg-error"   style={{ marginTop: 8 }}>{saveError}</div>}
+                  {saveSuccess && <div style={{ marginTop: 8, color: '#2e7d32', fontWeight: 500 }}>{saveSuccess}</div>}
+                </div>
+
+                <hr style={{ margin: '24px 0', borderColor: '#eee' }} />
 
                 {scenarioData ? (
                   <div className="fg-card" style={{ marginTop: 16 }}>
