@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { fetchHistory, fetchScore, fetchImpact, fetchScenario, exportImpactReport } from '../services/api';
+import { fetchHistory, fetchHistoryForMonth, fetchHistoryForYear, fetchScore, fetchImpact, fetchScenario, exportImpactReport } from '../services/api';
 import edenredLogo from '../assets/Edenred_Logo.svg';
 import notificacaoIcon from '../assets/notificacao.svg';
 import arvoreIcon from '../assets/Arvore.svg';
@@ -31,9 +31,7 @@ function deriveDates(period) {
   } else if (period === 'yearly') {
     start = new Date(now.getFullYear(), 0, 1).toISOString().slice(0, 10);
   } else {
-    const d = new Date(now);
-    d.setDate(d.getDate() - 30);
-    start = d.toISOString().slice(0, 10);
+    start = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().slice(0, 10);
   }
   return { start, end };
 }
@@ -111,15 +109,49 @@ function buildCategoryRanking(transactions) {
 // ── Tree Icon ────────────────────────────────────────────────────────────────
 
 // ── Chart ─────────────────────────────────────────────────────────────────────
-const HIST_MOCK = [
-  { month: 'Nov', value: 380 },
-  { month: 'Dez', value: 410 },
-  { month: 'Jan', value: 390 },
-  { month: 'Fev', value: 440 },
-  { month: 'Mar', value: 470 },
-  { month: 'Abr', value: 490 },
-  { month: 'Mai', value: 531 },
-];
+const PHYSICAL_CO2  = 0.98;
+const DIGITAL_TYPES = new Set(['PIX', 'NFC', 'TED']);
+const MONTHS_PT     = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
+
+function buildHistData(transactions, year) {
+  const today    = new Date();
+  const maxMonth = year === today.getFullYear() ? today.getMonth() : 11;
+  const totals   = Array(12).fill(0);
+  for (const tx of transactions) {
+    const date = new Date(tx.transactionDate);
+    if (date.getFullYear() !== year) continue;
+    const month = date.getMonth();
+    if (DIGITAL_TYPES.has(tx.paymentType)) {
+      totals[month] += Math.max(0, PHYSICAL_CO2 - (tx.co2Grams ?? 0));
+    }
+  }
+  return MONTHS_PT.slice(0, maxMonth + 1).map((month, i) => ({ month, value: +totals[i].toFixed(2) }));
+}
+
+function buildDailyHistData(transactions, year, month) {
+  const today = new Date();
+  const isCurrentMonth = year === today.getFullYear() && month === today.getMonth();
+  const daysInMonth = new Date(year, month + 1, 0).getDate();
+  const maxDay = isCurrentMonth ? today.getDate() : daysInMonth;
+  const totals = Array(daysInMonth + 1).fill(0);
+  for (const tx of transactions) {
+    const date = new Date(tx.transactionDate);
+    if (date.getFullYear() !== year || date.getMonth() !== month) continue;
+    const day = date.getDate();
+    if (DIGITAL_TYPES.has(tx.paymentType)) {
+      totals[day] += Math.max(0, PHYSICAL_CO2 - (tx.co2Grams ?? 0));
+    }
+  }
+  return Array.from({ length: maxDay }, (_, i) => ({
+    month: String(i + 1),
+    value: +totals[i + 1].toFixed(2),
+  }));
+}
+
+function fmtHistValue(g) {
+  if (g >= 1000) return `${(g / 1000).toFixed(1)}kg`;
+  return `${g.toFixed(2)}g`;
+}
 
 function buildSmoothPath(pts) {
   if (pts.length < 2) return '';
@@ -140,17 +172,35 @@ function buildSmoothPath(pts) {
 }
 
 function HistChart({ data }) {
+  const [hoveredIndex, setHoveredIndex] = useState(null);
   const W = 520;
   const H = 200;
   const padX = 28;
   const padTop = 32;
   const padBottom = 44;
-  const max = Math.max(...data.map(d => d.value));
-  const min = Math.min(...data.map(d => d.value));
-  const range = max - min || 1;
-  const innerW = W - padX * 2;
-  const innerH = H - padTop - padBottom;
+
+  if (!data || data.length === 0) {
+    return (
+      <svg className="fg-hist" viewBox={`0 0 ${W} ${H}`} width="100%" style={{ display: 'block' }}>
+        <text x={W / 2} y={H / 2} textAnchor="middle" fill="#999" fontSize="14">
+          Sem dados no período
+        </text>
+      </svg>
+    );
+  }
+
+  const max      = Math.max(...data.map(d => d.value));
+  const min      = 0;
+  const range    = max || 1;
+  const innerW   = W - padX * 2;
+  const innerH   = H - padTop - padBottom;
   const baselineY = H - padBottom;
+  const sparse   = data.length > 15;
+
+  function showLabel(i) {
+    if (!sparse) return true;
+    return i === 0 || (i + 1) % 5 === 0;
+  }
 
   const pts = data.map((d, i) => [
     padX + (i / (data.length - 1)) * innerW,
@@ -178,9 +228,12 @@ function HistChart({ data }) {
           <stop offset="0%" className="fg-hist-grad-start" />
           <stop offset="100%" className="fg-hist-grad-end" />
         </linearGradient>
+        <clipPath id="fg-hist-clip">
+          <rect x={0} y={0} width={W} height={baselineY + 1} />
+        </clipPath>
       </defs>
 
-      {pts.map(([x, y], i) => (
+      {pts.map(([x, y], i) => showLabel(i) && (
         <line
           key={`dash-${i}`}
           className="fg-hist-dash"
@@ -199,17 +252,27 @@ function HistChart({ data }) {
         y2={baselineY}
       />
 
-      <path className="fg-hist-line" d={path} />
+      <path className="fg-hist-line" d={path} clipPath="url(#fg-hist-clip)" />
 
       {pts.map(([x, y], i) => (
-        <g key={`pt-${i}`}>
-          <circle className="fg-hist-dot" cx={x} cy={y} r="4.5" />
-          <text className="fg-hist-value" x={x} y={y - 12} textAnchor="middle">
-            {data[i].value}g
-          </text>
-          <text className="fg-hist-month" x={x} y={baselineY + 22} textAnchor="middle">
-            {data[i].month}
-          </text>
+        <g
+          key={`pt-${i}`}
+          onMouseEnter={() => setHoveredIndex(i)}
+          onMouseLeave={() => setHoveredIndex(null)}
+          style={{ cursor: 'default' }}
+        >
+          <circle cx={x} cy={y} r="16" fill="transparent" />
+          <circle className="fg-hist-dot" cx={x} cy={y} r={hoveredIndex === i ? 6.5 : 4.5} />
+          {hoveredIndex === i && (
+            <text className="fg-hist-value" x={x} y={y - 14} textAnchor="middle">
+              {fmtHistValue(data[i].value)}
+            </text>
+          )}
+          {showLabel(i) && (
+            <text className="fg-hist-month" x={x} y={baselineY + 22} textAnchor="middle">
+              {data[i].month}
+            </text>
+          )}
         </g>
       ))}
     </svg>
@@ -259,6 +322,9 @@ export default function Dashboard() {
   const [impact, setImpact]               = useState(null);
   const [score, setScore]                 = useState(null);
   const [transactions, setTransactions]   = useState([]);
+  const [histChartData, setHistChartData] = useState([]);
+  const [histYear, setHistYear]           = useState(new Date().getFullYear());
+  const [histMonth, setHistMonth]         = useState(new Date().getMonth());
   const [loading, setLoading]             = useState(false);
   const [error, setError]                 = useState(null);
   const [exportLoading, setExportLoading] = useState(false);
@@ -293,6 +359,22 @@ export default function Dashboard() {
     void load();
     return () => { cancelled = true; };
   }, [companyId, period]);
+
+  useEffect(() => {
+    if (!companyId) return;
+    let cancelled = false;
+    setHistChartData([]);
+    if (period === 'yearly') {
+      fetchHistoryForYear(companyId, histYear)
+        .then(txs => { if (!cancelled) setHistChartData(buildHistData(txs, histYear)); })
+        .catch(() => {});
+    } else {
+      fetchHistoryForMonth(companyId, histYear, histMonth)
+        .then(txs => { if (!cancelled) setHistChartData(buildDailyHistData(txs, histYear, histMonth)); })
+        .catch(() => {});
+    }
+    return () => { cancelled = true; };
+  }, [companyId, period, histYear, histMonth]);
 
   async function handleExport() {
     setExportError(null);
@@ -595,15 +677,52 @@ export default function Dashboard() {
 
                 <div className="fg-col">
                   <div className="fg-card">
-                    <div className="fg-card-head">
-                      <div>
-                        <div className="fg-card-title">Histórico de CO₂ evitado</div>
-                        <div className="fg-card-sub">Últimos 7 meses</div>
-                      </div>
-                    </div>
-                    <div className="fg-chart-wrap">
-                      <HistChart data={HIST_MOCK} />
-                    </div>
+                    {(() => {
+                      const today = new Date();
+                      const isYearly = period === 'yearly';
+                      const isCurrentMonth = histYear === today.getFullYear() && histMonth === today.getMonth();
+                      const isCurrentYear  = histYear >= today.getFullYear();
+                      const daysInMonth    = new Date(histYear, histMonth + 1, 0).getDate();
+                      const maxDay         = isCurrentMonth ? today.getDate() : daysInMonth;
+
+                      function prevNav() {
+                        if (isYearly) { setHistYear(y => y - 1); }
+                        else if (histMonth === 0) { setHistYear(y => y - 1); setHistMonth(11); }
+                        else { setHistMonth(m => m - 1); }
+                      }
+                      function nextNav() {
+                        if (isYearly) { if (!isCurrentYear) setHistYear(y => y + 1); }
+                        else if (!isCurrentMonth) {
+                          if (histMonth === 11) { setHistYear(y => y + 1); setHistMonth(0); }
+                          else { setHistMonth(m => m + 1); }
+                        }
+                      }
+                      const navLabel  = isYearly ? `${histYear}` : `${MONTHS_PT[histMonth]} ${histYear}`;
+                      const navMinW   = isYearly ? '36px' : '80px';
+                      const prevDis   = isYearly ? histYear <= 2020 : (histYear <= 2020 && histMonth === 0);
+                      const nextDis   = isYearly ? isCurrentYear : isCurrentMonth;
+                      const subtitle  = isYearly
+                        ? `Janeiro a ${isCurrentYear ? MONTHS_PT[today.getMonth()] : 'Dezembro'} ${histYear}`
+                        : `Dia 1 a ${maxDay} — ${MONTHS_PT[histMonth]} ${histYear}`;
+
+                      return (
+                        <>
+                          <div className="fg-card-head">
+                            <div>
+                              <div className="fg-card-title">Histórico de CO₂ evitado</div>
+                            </div>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                              <button onClick={prevNav} disabled={prevDis} style={{ background: 'none', border: '1px solid #ddd', borderRadius: '6px', padding: '4px 10px', cursor: 'pointer', fontSize: '16px', lineHeight: 1 }}>‹</button>
+                              <span style={{ fontWeight: 600, fontSize: '14px', minWidth: navMinW, textAlign: 'center' }}>{navLabel}</span>
+                              <button onClick={nextNav} disabled={nextDis} style={{ background: 'none', border: '1px solid #ddd', borderRadius: '6px', padding: '4px 10px', cursor: 'pointer', fontSize: '16px', lineHeight: 1 }}>›</button>
+                            </div>
+                          </div>
+                          <div className="fg-chart-wrap">
+                            <HistChart data={histChartData} />
+                          </div>
+                        </>
+                      );
+                    })()}
                   </div>
 
                   <div className="fg-card">

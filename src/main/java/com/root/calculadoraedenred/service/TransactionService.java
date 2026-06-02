@@ -87,20 +87,19 @@ public class TransactionService {
         }
 
         LocalDate hoje = LocalDate.now();
-        ScoreDTO base = calculateScore(companyId, hoje.withDayOfMonth(1), hoje);
-        double baseCO2 = base.getCo2Saved();
-
-        double multiplier = switch (period) {
-            case WEEKLY  -> 1.0 / 4.0;
-            case MONTHLY -> 1.0;
-            case YEARLY  -> 12.0;
+        LocalDate start = switch (period) {
+            case WEEKLY  -> hoje.minusDays(7);
+            case MONTHLY -> hoje.withDayOfMonth(1);
+            case YEARLY  -> LocalDate.of(hoje.getYear(), 1, 1);
         };
 
-        double co2 = baseCO2 * multiplier;
+        ScoreDTO base = calculateScore(companyId, start, hoje);
+        double co2 = base.getCo2Saved();
+
         String label = switch (period) {
-            case WEEKLY  -> "estimativa semanal";
-            case MONTHLY -> "estimativa mensal";
-            case YEARLY  -> "estimativa anual";
+            case WEEKLY  -> "últimos 7 dias";
+            case MONTHLY -> "mês atual";
+            case YEARLY  -> "este ano";
         };
 
         return new ImpactDTO(co2, co2 / 21_000.0, co2 / 120.0, label, period.name().toLowerCase());

@@ -7,6 +7,37 @@ export async function fetchHistory(companyId, startDate, endDate) {
   return res.json();
 }
 
+export async function fetchHistoryForMonth(companyId, year, month) {
+  const today = new Date();
+  const isCurrentMonth = year === today.getFullYear() && month === today.getMonth();
+  const start = new Date(year, month, 1);
+  const end   = isCurrentMonth ? today : new Date(year, month + 1, 0);
+  const params = new URLSearchParams({
+    companyId,
+    startDate: start.toISOString().slice(0, 10),
+    endDate:   end.toISOString().slice(0, 10),
+  });
+  const res = await fetch(`${BASE}/history?${params}`);
+  if (!res.ok) throw new Error(`Erro ao buscar histórico: ${res.status}`);
+  return res.json();
+}
+
+export async function fetchHistoryForYear(companyId, year) {
+  const today = new Date();
+  const isCurrentYear = year === today.getFullYear();
+  const start = new Date(year, 0, 1);
+  const end   = isCurrentYear ? today : new Date(year, 11, 31);
+  const params = new URLSearchParams({
+    companyId,
+    startDate: start.toISOString().slice(0, 10),
+    endDate:   end.toISOString().slice(0, 10),
+  });
+  const res = await fetch(`${BASE}/history?${params}`);
+  if (!res.ok) throw new Error(`Erro ao buscar histórico: ${res.status}`);
+  return res.json();
+}
+
+
 export async function fetchScore(companyId, startDate, endDate) {
   const params = new URLSearchParams({ companyId, startDate, endDate });
   const res = await fetch(`${BASE}/score?${params}`);
