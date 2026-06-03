@@ -1,5 +1,6 @@
-import { useState, useEffect } from 'react';
-import { fetchHistory, fetchHistoryForMonth, fetchHistoryForYear, fetchScore, fetchImpact, fetchScenario, exportImpactReport } from '../services/api';
+import { useState, useEffect, useRef } from 'react';
+import { useAuth } from '../context/AuthContext';
+import { fetchHistory, fetchHistoryForMonth, fetchHistoryForWeek, fetchHistoryForYear, fetchScore, fetchImpact, fetchScenario, exportImpactReport } from '../services/api';
 import edenredLogo from '../assets/Edenred_Logo.svg';
 import notificacaoIcon from '../assets/notificacao.svg';
 import arvoreIcon from '../assets/Arvore.svg';
@@ -17,21 +18,30 @@ import relatorioIcon from '../assets/RelatorioIcon.svg';
 import metasIcon from '../assets/MetasIcon.svg';
 import configuracoesIcon from '../assets/ConfihuraçõesIcon.svg';
 import comparativoIcon from '../assets/ComparativoIcon.svg';
+import perfilIcon from '../assets/Perfil.svg';
 import './Dashboard.css';
 
 // ── helpers ───────────────────────────────────────────────────────────────────
+// YYYY-MM-DD no fuso LOCAL (toISOString desloca o dia em fusos UTC+).
+function toLocalISODate(d) {
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${y}-${m}-${day}`;
+}
+
 function deriveDates(period) {
   const now = new Date();
-  const end = now.toISOString().slice(0, 10);
+  const end = toLocalISODate(now);
   let start;
   if (period === 'weekly') {
     const d = new Date(now);
     d.setDate(d.getDate() - 7);
-    start = d.toISOString().slice(0, 10);
+    start = toLocalISODate(d);
   } else if (period === 'yearly') {
-    start = new Date(now.getFullYear(), 0, 1).toISOString().slice(0, 10);
+    start = toLocalISODate(new Date(now.getFullYear(), 0, 1));
   } else {
-    start = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().slice(0, 10);
+    start = toLocalISODate(new Date(now.getFullYear(), now.getMonth(), 1));
   }
   return { start, end };
 }
@@ -148,9 +158,68 @@ function buildDailyHistData(transactions, year, month) {
   }));
 }
 
+function buildWeeklyHistData(transactions) {
+  const today = new Date();
+  const days = [];
+  for (let k = 6; k >= 0; k--) {
+    const d = new Date(today);
+    d.setDate(d.getDate() - k);
+    days.push(d);
+  }
+  const totals = days.map(() => 0);
+  for (const tx of transactions) {
+    const date = new Date(tx.transactionDate);
+    if (!DIGITAL_TYPES.has(tx.paymentType)) continue;
+    const i = days.findIndex(d =>
+      d.getFullYear() === date.getFullYear() &&
+      d.getMonth()    === date.getMonth() &&
+      d.getDate()     === date.getDate());
+    if (i >= 0) totals[i] += Math.max(0, PHYSICAL_CO2 - (tx.co2Grams ?? 0));
+  }
+  return days.map((d, i) => ({
+    month: `${d.getDate()}/${d.getMonth() + 1}`,
+    value: +totals[i].toFixed(2),
+  }));
+}
+
 function fmtHistValue(g) {
   if (g >= 1000) return `${(g / 1000).toFixed(1)}kg`;
   return `${g.toFixed(2)}g`;
+}
+
+// Rótulo do guia do eixo Y, sem casas decimais desnecessárias (5g, 10g, 0.5g…).
+function fmtHistTick(g) {
+  if (g >= 1000) {
+    const kg = g / 1000;
+    return `${Number.isInteger(kg) ? kg : kg.toFixed(1)}kg`;
+  }
+  return `${Number.isInteger(g) ? g : +g.toFixed(2)}g`;
+}
+
+// Passo "redondo" para o valor máximo, ~2 intervalos no eixo.
+// Usa apenas 1, 5 e 10 × 10ⁿ (sem o 2) para os guias ficarem em múltiplos de 5.
+function niceStep(max, targetTicks = 2) {
+  if (max <= 0) return 1;
+  const rough = max / targetTicks;
+  const exp   = Math.floor(Math.log10(rough));
+  const base  = Math.pow(10, exp);
+  const frac  = rough / base;
+  let niceFrac;
+  if (frac < 1.5)      niceFrac = 1;
+  else if (frac < 7)   niceFrac = 5;
+  else                 niceFrac = 10;
+  return niceFrac * base;
+}
+
+// Gera os guias do eixo Y: topo arredondado pra cima e passos fixos a partir do 0.
+function buildAxisTicks(max) {
+  const step    = niceStep(max);
+  const niceMax = Math.max(step, Math.ceil(max / step) * step);
+  const ticks   = [];
+  for (let v = 0; v <= niceMax + step * 1e-6; v += step) {
+    ticks.push(+v.toFixed(6)); // evita acúmulo de erro de ponto flutuante
+  }
+  return { ticks, niceMax };
 }
 
 function buildSmoothPath(pts) {
@@ -171,43 +240,54 @@ function buildSmoothPath(pts) {
   return d;
 }
 
-function HistChart({ data }) {
+function HistChart({ data, loading, error }) {
   const [hoveredIndex, setHoveredIndex] = useState(null);
   const W = 520;
   const H = 200;
-  const padX = 28;
+  const padLeft = 46;
+  const padRight = 28;
   const padTop = 32;
   const padBottom = 44;
+  const baselineY = H - padBottom;
 
-  if (!data || data.length === 0) {
+  function centered(message, cls) {
     return (
       <svg className="fg-hist" viewBox={`0 0 ${W} ${H}`} width="100%" style={{ display: 'block' }}>
-        <text x={W / 2} y={H / 2} textAnchor="middle" fill="#999" fontSize="14">
-          Sem dados no período
+        <text x={W / 2} y={H / 2} textAnchor="middle" className={cls} fontSize="14">
+          {message}
         </text>
       </svg>
     );
   }
 
-  const max      = Math.max(...data.map(d => d.value));
+  if (loading) return centered('Carregando histórico…', 'fg-hist-msg');
+  if (error)   return centered(error, 'fg-hist-msg fg-hist-msg--error');
+  if (!data || data.length === 0) return centered('Sem dados no período', 'fg-hist-msg');
+
+  const max      = Math.max(...data.map(d => d.value), 0);
   const min      = 0;
-  const range    = max || 1;
-  const innerW   = W - padX * 2;
+  // Escala arredondada: topo sobe pro próximo número redondo (ex.: max 8 → 10).
+  const { ticks: yTicks, niceMax } = buildAxisTicks(max);
+  const range    = niceMax || 1;
+  const innerW   = W - padLeft - padRight;
   const innerH   = H - padTop - padBottom;
-  const baselineY = H - padBottom;
   const sparse   = data.length > 15;
+  const single   = data.length === 1;
 
   function showLabel(i) {
     if (!sparse) return true;
     return i === 0 || (i + 1) % 5 === 0;
   }
 
-  const pts = data.map((d, i) => [
-    padX + (i / (data.length - 1)) * innerW,
-    padTop + (1 - (d.value - min) / range) * innerH,
-  ]);
+  // Centraliza o único ponto em vez de gerar NaN (i / 0).
+  const xAt = i => single ? padLeft + innerW / 2 : padLeft + (i / (data.length - 1)) * innerW;
+  const yAt = v => padTop + (1 - (v - min) / range) * innerH;
 
+  const pts = data.map((d, i) => [xAt(i), yAt(d.value)]);
   const path = buildSmoothPath(pts);
+
+  // Eixo Y: guias em passos redondos (0, 5, 10, 15…) até o topo arredondado.
+  const ticks = yTicks.map(v => ({ v, y: yAt(v) }));
 
   return (
     <svg
@@ -220,9 +300,9 @@ function HistChart({ data }) {
         <linearGradient
           id="fg-hist-gradient"
           gradientUnits="userSpaceOnUse"
-          x1={padX}
+          x1={padLeft}
           y1="0"
-          x2={W - padX}
+          x2={W - padRight}
           y2="0"
         >
           <stop offset="0%" className="fg-hist-grad-start" />
@@ -232,6 +312,18 @@ function HistChart({ data }) {
           <rect x={0} y={0} width={W} height={baselineY + 1} />
         </clipPath>
       </defs>
+
+      {/* Linhas de grade + rótulos do eixo Y */}
+      {ticks.map(({ v, y }, i) => (
+        <g key={`tick-${i}`}>
+          {i > 0 && (
+            <line className="fg-hist-grid" x1={padLeft} y1={y} x2={W - padRight} y2={y} />
+          )}
+          <text className="fg-hist-ytick" x={padLeft - 8} y={y + 3} textAnchor="end">
+            {fmtHistTick(v)}
+          </text>
+        </g>
+      ))}
 
       {pts.map(([x, y], i) => showLabel(i) && (
         <line
@@ -246,35 +338,38 @@ function HistChart({ data }) {
 
       <line
         className="fg-hist-axis"
-        x1={padX - 8}
+        x1={padLeft - 8}
         y1={baselineY}
-        x2={W - padX + 8}
+        x2={W - padRight + 8}
         y2={baselineY}
       />
 
-      <path className="fg-hist-line" d={path} clipPath="url(#fg-hist-clip)" />
+      {!single && <path className="fg-hist-line" d={path} clipPath="url(#fg-hist-clip)" />}
 
-      {pts.map(([x, y], i) => (
-        <g
-          key={`pt-${i}`}
-          onMouseEnter={() => setHoveredIndex(i)}
-          onMouseLeave={() => setHoveredIndex(null)}
-          style={{ cursor: 'default' }}
-        >
-          <circle cx={x} cy={y} r="16" fill="transparent" />
-          <circle className="fg-hist-dot" cx={x} cy={y} r={hoveredIndex === i ? 6.5 : 4.5} />
-          {hoveredIndex === i && (
-            <text className="fg-hist-value" x={x} y={y - 14} textAnchor="middle">
-              {fmtHistValue(data[i].value)}
-            </text>
-          )}
-          {showLabel(i) && (
-            <text className="fg-hist-month" x={x} y={baselineY + 22} textAnchor="middle">
-              {data[i].month}
-            </text>
-          )}
-        </g>
-      ))}
+      {pts.map(([x, y], i) => {
+        const active = hoveredIndex === i || single;
+        return (
+          <g
+            key={`pt-${i}`}
+            onMouseEnter={() => setHoveredIndex(i)}
+            onMouseLeave={() => setHoveredIndex(null)}
+            style={{ cursor: 'default' }}
+          >
+            <circle cx={x} cy={y} r="16" fill="transparent" />
+            <circle className="fg-hist-dot" cx={x} cy={y} r={hoveredIndex === i ? 6.5 : 4.5} />
+            {active && (
+              <text className="fg-hist-value" x={x} y={y - 14} textAnchor="middle">
+                {fmtHistValue(data[i].value)}
+              </text>
+            )}
+            {showLabel(i) && (
+              <text className="fg-hist-month" x={x} y={baselineY + 22} textAnchor="middle">
+                {data[i].month}
+              </text>
+            )}
+          </g>
+        );
+      })}
     </svg>
   );
 }
@@ -312,7 +407,8 @@ const PERIODS = [
 
 // ── Component ─────────────────────────────────────────────────────────────────
 export default function Dashboard() {
-  const [companyId, setCompanyId]         = useState('1');
+  const { empresa, logout }               = useAuth();
+  const companyId                         = empresa?.id;
   const [activePage, setActivePage]       = useState('Dashboard');
   const [period, setPeriod]               = useState('monthly');
   const [scenarioId, setScenarioId]       = useState('1');
@@ -323,12 +419,16 @@ export default function Dashboard() {
   const [score, setScore]                 = useState(null);
   const [transactions, setTransactions]   = useState([]);
   const [histChartData, setHistChartData] = useState([]);
+  const [histLoading, setHistLoading]     = useState(false);
+  const [histError, setHistError]         = useState(null);
   const [histYear, setHistYear]           = useState(new Date().getFullYear());
   const [histMonth, setHistMonth]         = useState(new Date().getMonth());
   const [loading, setLoading]             = useState(false);
   const [error, setError]                 = useState(null);
   const [exportLoading, setExportLoading] = useState(false);
   const [exportError, setExportError]     = useState(null);
+  const [userMenuOpen, setUserMenuOpen]   = useState(false);
+  const userMenuRef                       = useRef(null);
 
   useEffect(() => {
     if (!companyId) return;
@@ -360,19 +460,47 @@ export default function Dashboard() {
     return () => { cancelled = true; };
   }, [companyId, period]);
 
+  // Fecha o dropdown do perfil ao clicar fora ou apertar Esc.
+  useEffect(() => {
+    if (!userMenuOpen) return;
+    function onPointer(e) {
+      if (userMenuRef.current && !userMenuRef.current.contains(e.target)) {
+        setUserMenuOpen(false);
+      }
+    }
+    function onKey(e) { if (e.key === 'Escape') setUserMenuOpen(false); }
+    document.addEventListener('mousedown', onPointer);
+    document.addEventListener('keydown', onKey);
+    return () => {
+      document.removeEventListener('mousedown', onPointer);
+      document.removeEventListener('keydown', onKey);
+    };
+  }, [userMenuOpen]);
+
   useEffect(() => {
     if (!companyId) return;
     let cancelled = false;
     setHistChartData([]);
+    setHistError(null);
+    setHistLoading(true);
+
+    let promise;
     if (period === 'yearly') {
-      fetchHistoryForYear(companyId, histYear)
-        .then(txs => { if (!cancelled) setHistChartData(buildHistData(txs, histYear)); })
-        .catch(() => {});
+      promise = fetchHistoryForYear(companyId, histYear)
+        .then(txs => buildHistData(txs, histYear));
+    } else if (period === 'weekly') {
+      promise = fetchHistoryForWeek(companyId)
+        .then(txs => buildWeeklyHistData(txs));
     } else {
-      fetchHistoryForMonth(companyId, histYear, histMonth)
-        .then(txs => { if (!cancelled) setHistChartData(buildDailyHistData(txs, histYear, histMonth)); })
-        .catch(() => {});
+      promise = fetchHistoryForMonth(companyId, histYear, histMonth)
+        .then(txs => buildDailyHistData(txs, histYear, histMonth));
     }
+
+    promise
+      .then(chart => { if (!cancelled) setHistChartData(chart); })
+      .catch(() => { if (!cancelled) setHistError('Não foi possível carregar o histórico. Tente novamente.'); })
+      .finally(() => { if (!cancelled) setHistLoading(false); });
+
     return () => { cancelled = true; };
   }, [companyId, period, histYear, histMonth]);
 
@@ -433,10 +561,11 @@ export default function Dashboard() {
 
   const physTxs = transactions.filter(tx => tx.paymentType === 'PHYSICAL');
   const digTxs  = transactions.filter(tx => tx.paymentType !== 'PHYSICAL' && tx.paymentType !== 'UNKNOWN');
+  // Fallbacks alinhados aos fatores reais do backend (DEFAULT_FACTORS): físico 0,98g / digital 0,13g.
   const avgPhys = physTxs.length > 0
-    ? physTxs.reduce((s, tx) => s + (tx.co2Grams ?? 0), 0) / physTxs.length : 257;
+    ? physTxs.reduce((s, tx) => s + (tx.co2Grams ?? 0), 0) / physTxs.length : 0.98;
   const avgDig  = digTxs.length > 0
-    ? digTxs.reduce((s, tx) => s + (tx.co2Grams ?? 0), 0) / digTxs.length   : 12;
+    ? digTxs.reduce((s, tx) => s + (tx.co2Grams ?? 0), 0) / digTxs.length   : 0.13;
   const maxAvg  = Math.max(avgPhys, avgDig, 1);
   const redPct  = avgPhys > 0 ? Math.round((1 - avgDig / avgPhys) * 100) : 95;
   const benchPct = digitalPct || 72;
@@ -506,17 +635,47 @@ export default function Dashboard() {
               <img src={notificacaoIcon} width="36" height="36" alt="Notificações" />
             </button>
 
-            <div className="fg-topbar-user">
-              <div className="fg-topbar-user-info">
-                <span className="fg-user-name">João Silva</span>
-                <span className="fg-user-role">Gestor</span>
-              </div>
-              <div className="fg-avatar">
-                <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <circle cx="8" cy="5.3" r="2.65" fill="white"/>
-                  <path d="M3.3 13c0-2.6 2.1-4.7 4.7-4.7s4.7 2.1 4.7 4.7" stroke="white" strokeWidth="1.2" strokeLinecap="round" fill="none"/>
+            <div className="fg-user-menu" ref={userMenuRef}>
+              <button
+                type="button"
+                className="fg-topbar-user"
+                onClick={() => setUserMenuOpen(o => !o)}
+                aria-haspopup="menu"
+                aria-expanded={userMenuOpen}
+              >
+                <div className="fg-topbar-user-info">
+                  <span className="fg-user-name">{empresa?.nome ?? 'Empresa'}</span>
+                  <span className="fg-user-role">{empresa?.email ?? 'Gestor'}</span>
+                </div>
+                <div className="fg-avatar">
+                  <img src={perfilIcon} alt="" width="18" height="18" />
+                </div>
+                <svg className={`fg-user-caret${userMenuOpen ? ' fg-user-caret--open' : ''}`} width="12" height="12" viewBox="0 0 12 12" fill="none">
+                  <path d="M3 4.5 6 7.5 9 4.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
                 </svg>
-              </div>
+              </button>
+
+              {userMenuOpen && (
+                <div className="fg-user-dropdown" role="menu">
+                  <div className="fg-user-dropdown-head">
+                    <span className="fg-user-dropdown-name">{empresa?.nome ?? 'Empresa'}</span>
+                    <span className="fg-user-dropdown-email">{empresa?.email ?? ''}</span>
+                  </div>
+                  <button
+                    type="button"
+                    className="fg-user-dropdown-item"
+                    role="menuitem"
+                    onClick={() => { setUserMenuOpen(false); logout(); }}
+                  >
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+                      <path d="m16 17 5-5-5-5" />
+                      <path d="M21 12H9" />
+                    </svg>
+                    Sair
+                  </button>
+                </div>
+              )}
             </div>
           </div>
         </header>
@@ -680,6 +839,7 @@ export default function Dashboard() {
                     {(() => {
                       const today = new Date();
                       const isYearly = period === 'yearly';
+                      const isWeekly = period === 'weekly';
                       const isCurrentMonth = histYear === today.getFullYear() && histMonth === today.getMonth();
                       const isCurrentYear  = histYear >= today.getFullYear();
                       const daysInMonth    = new Date(histYear, histMonth + 1, 0).getDate();
@@ -701,24 +861,29 @@ export default function Dashboard() {
                       const navMinW   = isYearly ? '36px' : '80px';
                       const prevDis   = isYearly ? histYear <= 2020 : (histYear <= 2020 && histMonth === 0);
                       const nextDis   = isYearly ? isCurrentYear : isCurrentMonth;
-                      const subtitle  = isYearly
-                        ? `Janeiro a ${isCurrentYear ? MONTHS_PT[today.getMonth()] : 'Dezembro'} ${histYear}`
-                        : `Dia 1 a ${maxDay} — ${MONTHS_PT[histMonth]} ${histYear}`;
+                      const subtitle  = isWeekly
+                        ? 'Últimos 7 dias'
+                        : isYearly
+                          ? `Janeiro a ${isCurrentYear ? MONTHS_PT[today.getMonth()] : 'Dezembro'} ${histYear}`
+                          : `Dia 1 a ${maxDay} — ${MONTHS_PT[histMonth]} ${histYear}`;
 
                       return (
                         <>
                           <div className="fg-card-head">
                             <div>
                               <div className="fg-card-title">Histórico de CO₂ evitado</div>
+                              <div className="fg-card-sub">{subtitle}</div>
                             </div>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                              <button onClick={prevNav} disabled={prevDis} style={{ background: 'none', border: '1px solid #ddd', borderRadius: '6px', padding: '4px 10px', cursor: 'pointer', fontSize: '16px', lineHeight: 1 }}>‹</button>
-                              <span style={{ fontWeight: 600, fontSize: '14px', minWidth: navMinW, textAlign: 'center' }}>{navLabel}</span>
-                              <button onClick={nextNav} disabled={nextDis} style={{ background: 'none', border: '1px solid #ddd', borderRadius: '6px', padding: '4px 10px', cursor: 'pointer', fontSize: '16px', lineHeight: 1 }}>›</button>
-                            </div>
+                            {!isWeekly && (
+                              <div className="fg-hist-nav">
+                                <button className="fg-hist-nav-btn" onClick={prevNav} disabled={prevDis} aria-label="Período anterior">‹</button>
+                                <span className="fg-hist-nav-label" style={{ minWidth: navMinW }}>{navLabel}</span>
+                                <button className="fg-hist-nav-btn" onClick={nextNav} disabled={nextDis} aria-label="Próximo período">›</button>
+                              </div>
+                            )}
                           </div>
                           <div className="fg-chart-wrap">
-                            <HistChart data={histChartData} />
+                            <HistChart data={histChartData} loading={histLoading} error={histError} />
                           </div>
                         </>
                       );

@@ -1,0 +1,340 @@
+/* ── Telas de autenticação (Login / Cadastro) ───────────────────────────── */
+.auth-wrap {
+  min-height: 100svh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 32px 16px;
+  box-sizing: border-box;
+  background:
+    radial-gradient(1200px 600px at 100% -10%, rgba(255, 0, 125, 0.10), transparent 60%),
+    radial-gradient(1000px 500px at -10% 110%, rgba(247, 39, 23, 0.08), transparent 60%),
+    #F7F8FA;
+}
+
+.auth-card {
+  width: 100%;
+  max-width: 420px;
+  background: #fff;
+  border: 1px solid #ECEEF2;
+  border-radius: 18px;
+  box-shadow: 0 18px 50px -20px rgba(20, 20, 40, 0.25);
+  padding: 32px 30px;
+  text-align: left;
+  box-sizing: border-box;
+}
+
+.auth-logo {
+  display: block;
+  height: 38px;
+  margin: 0 auto 22px;
+}
+
+.auth-title {
+  font-family: 'Ubuntu', sans-serif;
+  font-size: var(--text-2xl);
+  font-weight: 700;
+  color: #14181F;
+  margin: 0 0 4px;
+  text-align: center;
+}
+
+.auth-sub {
+  font-family: 'Ubuntu', sans-serif;
+  font-size: var(--text-sm);
+  color: #6B7280;
+  text-align: center;
+  margin: 0 0 24px;
+}
+
+.auth-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 16px;
+}
+
+.auth-label {
+  font-family: 'Ubuntu', sans-serif;
+  font-size: var(--text-sm);
+  font-weight: 600;
+  color: #374151;
+}
+
+.auth-input {
+  font-family: 'Ubuntu', sans-serif;
+  font-size: var(--text-md);
+  color: #14181F;
+  padding: 11px 13px;
+  border: 1px solid #D7DBE2;
+  border-radius: 10px;
+  outline: none;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.auth-input::placeholder { color: #9AA2AE; }
+
+.auth-input:focus {
+  border-color: var(--color-gradient-start);
+  box-shadow: 0 0 0 3px rgba(255, 0, 125, 0.12);
+}
+
+.auth-btn {
+  width: 100%;
+  border: none;
+  border-radius: 10px;
+  padding: 12px 16px;
+  margin-top: 4px;
+  font-family: 'Ubuntu', sans-serif;
+  font-size: var(--text-md);
+  font-weight: 700;
+  color: #fff;
+  cursor: pointer;
+  background: var(--gradient-primary);
+  transition: filter 0.15s ease, opacity 0.15s ease;
+}
+
+.auth-btn:hover:not(:disabled) { filter: brightness(1.05); }
+.auth-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+
+.auth-error {
+  background: #FDECEC;
+  border: 1px solid #F5C6C6;
+  color: #B02A2A;
+  font-family: 'Ubuntu', sans-serif;
+  font-size: var(--text-sm);
+  padding: 10px 12px;
+  border-radius: 10px;
+  margin-bottom: 16px;
+}
+
+.auth-foot {
+  font-family: 'Ubuntu', sans-serif;
+  font-size: var(--text-sm);
+  color: #6B7280;
+  text-align: center;
+  margin: 20px 0 0;
+}
+
+.auth-link {
+  color: var(--color-gradient-start);
+  font-weight: 600;
+  text-decoration: none;
+}
+.auth-link:hover { text-decoration: underline; }
+
+.auth-hint {
+  font-family: 'Ubuntu', sans-serif;
+  font-size: var(--text-xs);
+  color: #9AA2AE;
+  text-align: center;
+  margin-top: 18px;
+  line-height: 1.5;
+}
+
+
+/* ── Login (split-screen, baseado no Figma) ─────────────────────────────── */
+/* Fixo na viewport inteira → divisão vermelho/branco exatamente no centro. */
+.login-screen {
+  position: fixed;
+  inset: 0;
+  z-index: 10;
+  display: flex;
+  text-align: left;
+  font-family: 'Ubuntu', sans-serif;
+  background: #fff;
+}
+
+/* Painel esquerdo — marca + gradiente */
+.login-brand {
+  flex: 0 0 50%;
+  max-width: 50%;
+  min-width: 0;
+  display: flex;
+  align-items: flex-start;
+  /* top / right / bottom / left — left=122px e top=181px conforme o Figma */
+  padding: 181px 56px 48px 122px;
+  box-sizing: border-box;
+  color: #fff;
+  /* Diagonal: rosa no canto inferior esquerdo → vermelho no canto superior direito */
+  background: linear-gradient(to top right, #FF007D 0%, #F72717 100%);
+}
+
+.login-brand-content { max-width: 440px; }
+
+.login-brand-headline {
+  margin: 0 0 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  color: #fff;
+  letter-spacing: -0.5px;
+}
+.login-brand-headline-1 { font-size: 33px; font-weight: 500; line-height: 1.12; }
+.login-brand-headline-2 { font-size: 33px; font-weight: 800; line-height: 1.12; }
+
+.login-brand-sub {
+  font-size: var(--text-md);
+  line-height: 1.5;
+  color: rgba(255, 255, 255, 0.92);
+  margin: 0 0 40px;
+  max-width: 340px;
+}
+
+.login-features {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 26px;
+}
+
+.login-feature { display: flex; align-items: center; gap: 16px; }
+
+.login-feature-icon {
+  flex-shrink: 0;
+  width: 46px;
+  height: 46px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.16);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+}
+
+.login-feature-text { display: flex; flex-direction: column; gap: 2px; }
+.login-feature-title { font-size: var(--text-lg); font-weight: 700; color: #fff; }
+.login-feature-desc  { font-size: var(--text-md); color: rgba(255, 255, 255, 0.88); }
+
+/* Painel direito — formulário */
+.login-panel {
+  flex: 0 0 50%;
+  max-width: 50%;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 32px;
+  box-sizing: border-box;
+  background: #fff;
+  overflow-y: auto;
+}
+
+.login-form {
+  width: 100%;
+  max-width: 380px;
+  display: flex;
+  flex-direction: column;
+}
+
+.login-logo { height: 40px; align-self: flex-start; margin-bottom: 36px; }
+
+.login-title {
+  font-family: 'Ubuntu', sans-serif;
+  font-size: 28px;
+  font-weight: 700;
+  color: #14181F;
+  margin: 0 0 6px;
+}
+
+.login-sub {
+  font-size: var(--text-md);
+  color: #6B7280;
+  margin: 0 0 26px;
+}
+
+/* Linha "Manter logado" + "Esqueci minha senha" */
+.login-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin: 4px 0 22px;
+}
+
+.login-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  cursor: pointer;
+  user-select: none;
+}
+.login-toggle input { position: absolute; opacity: 0; width: 0; height: 0; }
+
+.login-toggle-track {
+  position: relative;
+  width: 38px;
+  height: 22px;
+  border-radius: 999px;
+  background: #D7DBE2;
+  transition: background-color 0.18s ease;
+  flex-shrink: 0;
+}
+.login-toggle-thumb {
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.25);
+  transition: transform 0.18s ease;
+}
+.login-toggle input:checked + .login-toggle-track { background: var(--color-gradient-end); }
+.login-toggle input:checked + .login-toggle-track .login-toggle-thumb { transform: translateX(16px); }
+.login-toggle input:focus-visible + .login-toggle-track { box-shadow: 0 0 0 3px rgba(247, 39, 23, 0.22); }
+
+.login-toggle-label { font-size: var(--text-sm); color: #4B5563; }
+
+.login-forgot {
+  font-size: var(--text-sm);
+  font-weight: 600;
+  color: var(--color-gradient-start);
+  text-decoration: none;
+}
+.login-forgot:hover { text-decoration: underline; }
+
+.login-submit {
+  width: 100%;
+  border: none;
+  border-radius: 10px;
+  padding: 14px 16px;
+  font-family: 'Ubuntu', sans-serif;
+  font-size: var(--text-lg);
+  font-weight: 700;
+  color: #fff;
+  cursor: pointer;
+  background: #F0281C;
+  transition: filter 0.15s ease, opacity 0.15s ease;
+}
+.login-submit:hover:not(:disabled) { filter: brightness(1.05); }
+.login-submit:disabled { opacity: 0.6; cursor: not-allowed; }
+
+.login-foot-link {
+  font-size: var(--text-sm);
+  color: #6B7280;
+  text-align: center;
+  margin: 18px 0 0;
+}
+
+.login-hint {
+  font-size: var(--text-xs);
+  color: #9AA2AE;
+  text-align: center;
+  margin: 10px 0 0;
+}
+
+.login-copyright {
+  font-size: var(--text-xs);
+  color: #B6BCC6;
+  text-align: center;
+  margin: 28px 0 0;
+}
+
+/* Responsivo: some o painel da marca em telas estreitas */
+@media (max-width: 860px) {
+  .login-brand { display: none; }
+  .login-panel { flex: 0 0 100%; max-width: 100%; }
+}

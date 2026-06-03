@@ -165,7 +165,7 @@
   width: 38px;
   height: 38px;
   border-radius: 50%;
-  background: #E62830;
+  background: var(--gradient-primary);
   color: #fff;
   font-size: var(--text-sm);
   font-weight: 700;
@@ -307,21 +307,80 @@
   border: 2px solid #fff;
 }
 
+.fg-user-menu { position: relative; flex-shrink: 0; }
+
 .fg-topbar-user {
   display: flex;
   align-items: center;
   gap: 10px;
-  width: 131.19px;
   height: 40px;
-  padding-left: 16.8px;
+  padding: 0 8px 0 16.8px;
+  border: none;
   border-left: 1px solid #E5E7EB;
+  border-radius: 0 8px 8px 0;
+  background: transparent;
   box-sizing: border-box;
-  flex-shrink: 0;
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+}
+.fg-topbar-user:hover { background-color: #F7F8FA; }
+
+.fg-topbar-user-info { display: flex; flex-direction: column; text-align: right; min-width: 0; }
+.fg-user-name { font-family: 'Ubuntu', sans-serif; font-size: 12.8px; font-weight: 500; color: #101727; line-height: 20px; max-width: 140px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.fg-user-role { font-family: 'Ubuntu', sans-serif; font-size: 10.9px; font-weight: 400; color: rgb(105,114,130); line-height: 16px; max-width: 140px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+.fg-user-caret { color: #9AA2AE; flex-shrink: 0; transition: transform 0.18s ease; }
+.fg-user-caret--open { transform: rotate(180deg); }
+
+.fg-user-dropdown {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  min-width: 210px;
+  background: #fff;
+  border: 1px solid #ECEEF2;
+  border-radius: 12px;
+  box-shadow: 0 14px 34px -12px rgba(20, 20, 40, 0.28);
+  padding: 6px;
+  z-index: 50;
+  animation: fg-dropdown-in 0.14s ease-out;
 }
 
-.fg-topbar-user-info { display: flex; flex-direction: column; text-align: right; }
-.fg-user-name { font-family: 'Ubuntu', sans-serif; font-size: 12.8px; font-weight: 500; color: #101727; line-height: 20px; }
-.fg-user-role { font-family: 'Ubuntu', sans-serif; font-size: 10.9px; font-weight: 400; color: rgb(105,114,130); line-height: 16px; }
+.fg-user-dropdown-head {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 8px 10px 10px;
+  margin-bottom: 6px;
+  border-bottom: 1px solid #F1F3F6;
+  text-align: left;
+}
+.fg-user-dropdown-name  { font-family: 'Ubuntu', sans-serif; font-size: var(--text-sm); font-weight: 600; color: #101727; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.fg-user-dropdown-email { font-family: 'Ubuntu', sans-serif; font-size: var(--text-xs); color: #697282; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+.fg-user-dropdown-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 9px 10px;
+  border: none;
+  border-radius: 8px;
+  background: transparent;
+  font-family: 'Ubuntu', sans-serif;
+  font-size: var(--text-sm);
+  font-weight: 600;
+  color: #697282;
+  cursor: pointer;
+  text-align: left;
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+.fg-user-dropdown-item:hover { background: #FDECEC; color: #B02A2A; }
+
+@keyframes fg-dropdown-in {
+  from { opacity: 0; transform: translateY(-4px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
 
 /* ── Content ─────────────────────────────────────────────────────────────── */
 .fg-content {
@@ -575,7 +634,7 @@
 .fg-card {
   background: #fff;
   border: 1px solid #E4E7EB;
-  border-radius: 12px;
+  border-radius: 22px;
   padding: 20px 22px;
   display: flex;
   flex-direction: column;
@@ -848,7 +907,7 @@
 .fg-card--co2type {
   background: #FFFFFF;
   border: 1px solid #E4E7EB;
-  border-radius: 12px;
+  border-radius: 22px;
   padding-left: 22px;
 }
 
@@ -1041,6 +1100,63 @@
   font-family: 'Ubuntu', sans-serif;
   font-size: var(--text-sm);
   fill: #697282;
+}
+
+.fg-hist-grid {
+  stroke: #EAEDF1;
+  stroke-width: 1;
+}
+
+.fg-hist-ytick {
+  font-family: 'Ubuntu', sans-serif;
+  font-size: var(--text-xs, 11px);
+  fill: #9AA2AE;
+}
+
+.fg-hist-msg {
+  font-family: 'Ubuntu', sans-serif;
+  fill: #9AA2AE;
+}
+
+.fg-hist-msg--error {
+  fill: #C0392B;
+}
+
+/* ── Histórico: navegação ────────────────────────────────────────────────── */
+.fg-hist-nav {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.fg-hist-nav-label {
+  font-family: 'Ubuntu', sans-serif;
+  font-weight: 600;
+  font-size: var(--text-sm);
+  text-align: center;
+  color: #1F2533;
+}
+
+.fg-hist-nav-btn {
+  background: none;
+  border: 1px solid #DDE2E8;
+  border-radius: 6px;
+  padding: 4px 10px;
+  font-size: 16px;
+  line-height: 1;
+  color: #1F2533;
+  cursor: pointer;
+  transition: background-color 0.15s ease, border-color 0.15s ease;
+}
+
+.fg-hist-nav-btn:hover:not(:disabled) {
+  background-color: #F2F5F8;
+  border-color: #C9CED6;
+}
+
+.fg-hist-nav-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
 }
 
 /* ── Impact list ─────────────────────────────────────────────────────────── */

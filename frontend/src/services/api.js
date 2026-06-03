@@ -1,8 +1,26 @@
+import { getToken } from './auth';
+
 const BASE = '/api/transactions';
+
+// Anexa o token JWT (quando houver). Hoje o token é mock; quando o backend
+// Spring Security entrar, este mesmo header já valida a requisição.
+function authHeaders(extra = {}) {
+  const token = getToken();
+  return token ? { ...extra, Authorization: `Bearer ${token}` } : { ...extra };
+}
+
+// Formata uma Date como YYYY-MM-DD no fuso LOCAL.
+// (toISOString() converte para UTC e desloca o dia em fusos UTC+.)
+function toLocalISODate(d) {
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${y}-${m}-${day}`;
+}
 
 export async function fetchHistory(companyId, startDate, endDate) {
   const params = new URLSearchParams({ companyId, startDate, endDate });
-  const res = await fetch(`${BASE}/history?${params}`);
+  const res = await fetch(`${BASE}/history?${params}`, { headers: authHeaders() });
   if (!res.ok) throw new Error(`Erro ao buscar histórico: ${res.status}`);
   return res.json();
 }
@@ -14,10 +32,24 @@ export async function fetchHistoryForMonth(companyId, year, month) {
   const end   = isCurrentMonth ? today : new Date(year, month + 1, 0);
   const params = new URLSearchParams({
     companyId,
-    startDate: start.toISOString().slice(0, 10),
-    endDate:   end.toISOString().slice(0, 10),
+    startDate: toLocalISODate(start),
+    endDate:   toLocalISODate(end),
   });
-  const res = await fetch(`${BASE}/history?${params}`);
+  const res = await fetch(`${BASE}/history?${params}`, { headers: authHeaders() });
+  if (!res.ok) throw new Error(`Erro ao buscar histórico: ${res.status}`);
+  return res.json();
+}
+
+export async function fetchHistoryForWeek(companyId) {
+  const today = new Date();
+  const start = new Date(today);
+  start.setDate(start.getDate() - 6); // 7 dias incluindo hoje
+  const params = new URLSearchParams({
+    companyId,
+    startDate: toLocalISODate(start),
+    endDate:   toLocalISODate(today),
+  });
+  const res = await fetch(`${BASE}/history?${params}`, { headers: authHeaders() });
   if (!res.ok) throw new Error(`Erro ao buscar histórico: ${res.status}`);
   return res.json();
 }
@@ -29,10 +61,10 @@ export async function fetchHistoryForYear(companyId, year) {
   const end   = isCurrentYear ? today : new Date(year, 11, 31);
   const params = new URLSearchParams({
     companyId,
-    startDate: start.toISOString().slice(0, 10),
-    endDate:   end.toISOString().slice(0, 10),
+    startDate: toLocalISODate(start),
+    endDate:   toLocalISODate(end),
   });
-  const res = await fetch(`${BASE}/history?${params}`);
+  const res = await fetch(`${BASE}/history?${params}`, { headers: authHeaders() });
   if (!res.ok) throw new Error(`Erro ao buscar histórico: ${res.status}`);
   return res.json();
 }
@@ -40,20 +72,20 @@ export async function fetchHistoryForYear(companyId, year) {
 
 export async function fetchScore(companyId, startDate, endDate) {
   const params = new URLSearchParams({ companyId, startDate, endDate });
-  const res = await fetch(`${BASE}/score?${params}`);
+  const res = await fetch(`${BASE}/score?${params}`, { headers: authHeaders() });
   if (!res.ok) throw new Error(`Erro ao buscar score: ${res.status}`);
   return res.json();
 }
 
 export async function fetchImpact(companyId, period) {
   const params = new URLSearchParams({ companyId, period });
-  const res = await fetch(`${BASE}/impact?${params}`);
+  const res = await fetch(`${BASE}/impact?${params}`, { headers: authHeaders() });
   if (!res.ok) throw new Error(`Erro ao buscar impacto: ${res.status}`);
   return res.json();
 }
 
 export async function fetchScenario(id) {
-  const res = await fetch(`/cenarios/${id}`);
+  const res = await fetch(`/cenarios/${id}`, { headers: authHeaders() });
   if (!res.ok) {
     let message = `Erro ao buscar cenário: ${res.status}`;
     try {
@@ -70,7 +102,7 @@ export async function fetchScenario(id) {
 export async function exportImpactReport(payload) {
   const res = await fetch('/calculos/exportar', {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: authHeaders({ 'Content-Type': 'application/json' }),
     body: JSON.stringify(payload),
   });
 
