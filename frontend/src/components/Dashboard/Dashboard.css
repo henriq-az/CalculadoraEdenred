@@ -72,8 +72,14 @@
 
 .fg-nav-link--active {
   background: #FEF2F2;
-  color: var(--color-gradient-end);
+  color: #CC2222; /* mesmo vermelho dos ícones */
   font-weight: 600;
+}
+
+/* Item ativo não muda no hover */
+.fg-nav-link--active:hover {
+  background: #FEF2F2;
+  color: #CC2222;
 }
 
 .fg-nav-icon {
@@ -89,7 +95,8 @@
 }
 
 .fg-nav-link--active .fg-nav-icon img {
-  filter: brightness(0) saturate(100%) invert(21%) sepia(95%) saturate(1932%) hue-rotate(349deg) brightness(99%) contrast(105%);
+  /* alvo: #CC2222 */
+  filter: brightness(0) saturate(100%) invert(17%) sepia(86%) saturate(2461%) hue-rotate(346deg) brightness(94%) contrast(93%);
 }
 
 .fg-sidebar-level-card {

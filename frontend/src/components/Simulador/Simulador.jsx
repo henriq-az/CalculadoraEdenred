@@ -16,6 +16,17 @@ const DIGITAL_TYPES = [
 // Cenário base quando não há transações reais disponíveis
 const FALLBACK = { physCount: 800, physCo2: 784, digCo2: 340, totalCo2: 1124 };
 
+// Interpola a cor do gradiente da marca (--color-gradient-start #FF007D →
+// --color-gradient-end #F72717) na posição t (0–1). Usado no contorno do "dot"
+// do slider: rosa à esquerda, vermelho à direita.
+const GRAD_START = [0xFF, 0x00, 0x7D];
+const GRAD_END   = [0xF7, 0x27, 0x17];
+function gradientAt(t) {
+  const c = Math.max(0, Math.min(1, t));
+  const ch = GRAD_START.map((s, i) => Math.round(s + (GRAD_END[i] - s) * c));
+  return `rgb(${ch[0]}, ${ch[1]}, ${ch[2]})`;
+}
+
 // Equivalências (fatores brasileiros)
 const EQ_TREE_G   = 21000; // g CO₂ absorvidos por árvore/ano
 const EQ_CAR_G    = 175;   // g CO₂ por km de carro
@@ -56,45 +67,6 @@ function computeComparativo(agg, volPct) {
   });
 }
 
-function TreeIcon() {
-  return (
-    <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
-      <path d="M14 4C14 4 7 11 7 17a7 7 0 0014 0c0-6-7-13-7-13z" stroke="#E63027" strokeWidth="1.5" fill="none"/>
-      <line x1="14" y1="24" x2="14" y2="27" stroke="#E63027" strokeWidth="1.5" strokeLinecap="round"/>
-    </svg>
-  );
-}
-
-function CarIcon() {
-  return (
-    <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
-      <rect x="4" y="11" width="20" height="10" rx="3" stroke="#E63027" strokeWidth="1.5"/>
-      <path d="M7 11l3-5h8l3 5" stroke="#E63027" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-      <circle cx="9" cy="21" r="2" stroke="#E63027" strokeWidth="1.5"/>
-      <circle cx="19" cy="21" r="2" stroke="#E63027" strokeWidth="1.5"/>
-    </svg>
-  );
-}
-
-function LightIcon() {
-  return (
-    <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
-      <path d="M14 4a7 7 0 014.95 11.95l-.95 2.05H10l-.95-2.05A7 7 0 0114 4z" stroke="#E63027" strokeWidth="1.5"/>
-      <rect x="11" y="18" width="6" height="2.5" rx="1" stroke="#E63027" strokeWidth="1.5"/>
-      <line x1="14" y1="20.5" x2="14" y2="23" stroke="#E63027" strokeWidth="1.5" strokeLinecap="round"/>
-    </svg>
-  );
-}
-
-function LeafIcon() {
-  return (
-    <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
-      <path d="M6 22C6 22 8 12 18 8C22 6 24 6 24 6C24 6 24 8 22 12C18 18 10 20 6 22Z" stroke="#E63027" strokeWidth="1.5" strokeLinejoin="round"/>
-      <path d="M6 22C8 18 12 14 18 10" stroke="#E63027" strokeWidth="1.5" strokeLinecap="round"/>
-    </svg>
-  );
-}
-
 function ChevronDown() {
   return (
     <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
@@ -116,6 +88,7 @@ const BEST_TYPE = DIGITAL_TYPES.reduce((best, t) =>
 export default function Simulador({ companyId, transactions }) {
   const [migrationPct, setMigrationPct]     = useState(50);
   const [paymentType, setPaymentType]       = useState('PIX');
+  const [categoria, setCategoria]           = useState('all');
   const [volumePct, setVolumePct]           = useState(100);
   const [saveName, setSaveName]             = useState('');
   const [showSave, setShowSave]             = useState(false);
@@ -136,6 +109,9 @@ export default function Simulador({ companyId, transactions }) {
   // annual economy per category (split into 3 equal parts)
   const catEconomy = (result.economiaKg * 12) / 3;
 
+  // Fração (0–1) da posição do slider de volume (min 10, max 200).
+  const volFrac = Math.min(1, Math.max(0, (volumePct - 10) / (200 - 10)));
+
   const fetchSaved = useCallback(() => {
     if (!companyId) return;
     listCenarios(companyId).then(setSavedScenarios).catch(() => {});
@@ -148,14 +124,31 @@ export default function Simulador({ companyId, transactions }) {
     setSaving(true);
     setSaveMsg(null);
     try {
-      const physCount      = agg.physCount;
-      const migratedCount  = Math.round(physCount * migrationPct / 100);
-      const remainingPhys  = physCount - migratedCount;
+      // Distribuição atual = contagem real por tipo (fallback se não houver dados).
+      const counts = {};
+      transactions.forEach(tx => {
+        const t = tx.paymentType || 'UNKNOWN';
+        counts[t] = (counts[t] || 0) + 1;
+      });
+      if (Object.keys(counts).length === 0) counts.PHYSICAL = Math.max(1, Math.round(agg.physCount));
 
-      const distribuicaoAtual    = [{ paymentType: 'PHYSICAL', quantidade: physCount }];
-      const distribuicaoSimulada = [];
-      if (remainingPhys  > 0) distribuicaoSimulada.push({ paymentType: 'PHYSICAL',   quantidade: remainingPhys });
-      if (migratedCount  > 0) distribuicaoSimulada.push({ paymentType: paymentType,  quantidade: migratedCount });
+      // Simulada = migra migrationPct do físico (PHYSICAL + UNKNOWN) para o tipo escolhido.
+      const physical    = (counts.PHYSICAL || 0) + (counts.UNKNOWN || 0);
+      const migrated    = Math.round(physical * migrationPct / 100);
+      const countsSim   = { ...counts };
+      let toRemove = migrated;
+      for (const pt of ['PHYSICAL', 'UNKNOWN']) {
+        const take = Math.min(countsSim[pt] || 0, toRemove);
+        countsSim[pt] = (countsSim[pt] || 0) - take;
+        toRemove -= take;
+      }
+      countsSim[paymentType] = (countsSim[paymentType] || 0) + migrated;
+
+      const toItems = obj => Object.entries(obj)
+        .map(([paymentType, quantidade]) => ({ paymentType, quantidade }))
+        .filter(i => i.quantidade > 0);
+      const distribuicaoAtual    = toItems(counts);
+      const distribuicaoSimulada = toItems(countsSim);
 
       const payLabel  = DIGITAL_TYPES.find(d => d.key === paymentType)?.label ?? paymentType;
       const descricao = `${migrationPct}% migração para ${payLabel} (volume ${volumePct}%)`;
@@ -163,7 +156,7 @@ export default function Simulador({ companyId, transactions }) {
       await saveScenario(
         saveName.trim(),
         { empresaId: Number(companyId), distribuicaoAtual, distribuicaoSimulada },
-        { descricao, tipoMeio: paymentType, categoria: null }
+        { descricao, tipoMeio: paymentType, categoria: categoria === 'all' ? null : categoria }
       );
       setSaveMsg({ ok: true, text: 'Cenário salvo com sucesso!' });
       setSaveName('');
@@ -181,10 +174,10 @@ export default function Simulador({ companyId, transactions }) {
       {/* ── LEFT: Parâmetros ─────────────────────────────────────────── */}
       <div className="sim-panel sim-panel--left">
         <div className="sim-panel-title">Parâmetros de simulação</div>
-        <div className="sim-panel-sub">Migração para o digital</div>
 
         {/* Migration % slider */}
-        <div className="sim-section">
+        <div className="sim-slider-block sim-slider-block--first">
+          <span className="sim-panel-sub">Migração para o digital</span>
           <div className="sim-slider-row">
             <span className="sim-slider-pct">{migrationPct}%</span>
           </div>
@@ -192,7 +185,7 @@ export default function Simulador({ companyId, transactions }) {
             type="range" min={0} max={100} value={migrationPct}
             onChange={e => setMigrationPct(Number(e.target.value))}
             className="sim-slider"
-            style={{ '--val': `${migrationPct}%` }}
+            style={{ '--val': `${migrationPct}%`, '--thumb': gradientAt(migrationPct / 100) }}
           />
           <div className="sim-slider-label">Percentual de transações migradas do físico para o digital</div>
         </div>
@@ -218,19 +211,23 @@ export default function Simulador({ companyId, transactions }) {
         <div className="sim-section">
           <div className="sim-field-title">Categoria</div>
           <div className="sim-select-wrap">
-            <select className="sim-select" defaultValue="all">
+            <select
+              className="sim-select"
+              value={categoria}
+              onChange={e => setCategoria(e.target.value)}
+            >
               <option value="all">Todas as categorias</option>
-              <option value="alimentacao">Alimentação</option>
-              <option value="frota">Frota</option>
-              <option value="servicos">Serviços</option>
+              <option value="Alimentação">Alimentação</option>
+              <option value="Frota">Frota</option>
+              <option value="Serviços">Serviços</option>
             </select>
             <span className="sim-select-arrow"><ChevronDown /></span>
           </div>
         </div>
 
         {/* Volume slider */}
-        <div className="sim-section">
-          <div className="sim-field-title">Volume de transações</div>
+        <div className="sim-slider-block">
+          <span className="sim-field-title">Volume de transações</span>
           <div className="sim-slider-row">
             <span className="sim-slider-pct">{volumePct}%</span>
           </div>
@@ -238,7 +235,7 @@ export default function Simulador({ companyId, transactions }) {
             type="range" min={10} max={200} value={volumePct}
             onChange={e => setVolumePct(Number(e.target.value))}
             className="sim-slider"
-            style={{ '--val': `${Math.min(100, ((volumePct - 10) / (200 - 10)) * 100)}%` }}
+            style={{ '--val': `${volFrac * 100}%`, '--thumb': gradientAt(volFrac) }}
           />
           <div className="sim-slider-label">Ajuste relativo ao volume atual (100% = volume atual)</div>
         </div>
@@ -297,7 +294,7 @@ export default function Simulador({ companyId, transactions }) {
 
         {/* Economy card */}
         <div className="sim-economy">
-          <div className="sim-economy-icon"><LeafIcon /></div>
+          <div className="sim-economy-icon"><span className="sim-mask-icon sim-mask-icon--leaf" /></div>
           <div className="sim-economy-body">
             <div className="sim-economy-val">{result.economiaKg.toFixed(2)} kg CO₂</div>
             <div className="sim-economy-sub">CO₂ evitado com migração selecionada</div>
@@ -307,17 +304,17 @@ export default function Simulador({ companyId, transactions }) {
         {/* Equivalences */}
         <div className="sim-equiv-row">
           <div className="sim-equiv">
-            <TreeIcon />
+            <span className="sim-mask-icon sim-mask-icon--tree" />
             <div className="sim-equiv-num">{treeEq.toFixed(1)}</div>
             <div className="sim-equiv-label">árvore/ano</div>
           </div>
           <div className="sim-equiv">
-            <CarIcon />
+            <span className="sim-mask-icon sim-mask-icon--car" />
             <div className="sim-equiv-num">{carKm.toFixed(0)} km</div>
             <div className="sim-equiv-label">De carro</div>
           </div>
           <div className="sim-equiv">
-            <LightIcon />
+            <span className="sim-mask-icon sim-mask-icon--light" />
             <div className="sim-equiv-num">{Math.round(lightH)} h</div>
             <div className="sim-equiv-label">De luz</div>
           </div>

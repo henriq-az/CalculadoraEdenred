@@ -18,6 +18,7 @@
   /* ── Design tokens ─────────────────────────────────────────── */
   /* Tipografia (escala fixa do design system) */
   --text-display: 50px;
+  --text-3xl: 44px;
   --text-2xl: 25px;
   --text-xl: 19px;
   --text-lg: 17px;

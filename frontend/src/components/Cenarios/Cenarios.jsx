@@ -8,16 +8,6 @@ function formatDate(isoString) {
   return `${parts[2]}/${parts[1]}/${parts[0]}`;
 }
 
-const PAYMENT_COLORS = {
-  PIX:    '#E63027',
-  NFC:    '#1F2937',
-  WALLET: '#7C3AED',
-  wallet: '#7C3AED',
-  QR:     '#2563EB',
-  'QR Code': '#2563EB',
-  TED:    '#F59E0B',
-};
-
 function CalendarIcon() {
   return (
     <svg width="13" height="13" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -121,7 +111,6 @@ export default function Cenarios({ companyId }) {
         const atualKg        = (c.emissoesAtuaisGramas ?? 0) / 1000;
         const projetadoKg    = (c.emissoesSimuladasGramas ?? 0) / 1000;
         const pct            = Math.round(c.percentualReducao ?? 0);
-        const tagColor       = PAYMENT_COLORS[c.tipoMeio] ?? '#E63027';
 
         return (
           <div
@@ -142,7 +131,7 @@ export default function Cenarios({ companyId }) {
 
             <div className="cn-tags">
               {c.tipoMeio && (
-                <span className="cn-tag cn-tag--payment" style={{ background: tagColor }}>
+                <span className="cn-tag cn-tag--payment">
                   {c.tipoMeio}
                 </span>
               )}
