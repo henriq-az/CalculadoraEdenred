@@ -1,0 +1,239 @@
+/* ── Relatórios page ─────────────────────────────────────────────────────── */
+.rl-page {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+/* ── Top action bar ──────────────────────────────────────────────────────── */
+.rl-top-bar {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.rl-generate-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 9px 20px;
+  border: none;
+  border-radius: 8px;
+  background: #E63027;
+  color: #fff;
+  font-size: 14px;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+  transition: opacity 0.13s;
+}
+
+.rl-generate-btn:disabled { opacity: 0.65; cursor: not-allowed; }
+.rl-generate-btn:not(:disabled):hover { opacity: 0.88; }
+
+/* ── Section card ────────────────────────────────────────────────────────── */
+.rl-card {
+  background: #fff;
+  border: 1px solid #E5E5E5;
+  border-radius: 12px;
+  padding: 24px;
+}
+
+.rl-card-head {
+  margin-bottom: 20px;
+}
+
+.rl-section-title {
+  font-size: 16px;
+  font-weight: 700;
+  color: #101727;
+  margin: 0 0 4px;
+}
+
+.rl-section-sub {
+  font-size: 13px;
+  color: #697282;
+  margin: 0;
+}
+
+/* ── KPI row ─────────────────────────────────────────────────────────────── */
+.rl-kpi-row {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+.rl-kpi-card {
+  background: #fff;
+  border: 1px solid #E5E5E5;
+  border-radius: 12px;
+  padding: 18px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.rl-kpi-label {
+  font-size: 12px;
+  color: #697282;
+  font-weight: 500;
+}
+
+.rl-kpi-value {
+  font-size: 30px;
+  font-weight: 700;
+  color: #101727;
+  line-height: 1.1;
+}
+
+.rl-kpi-detail {
+  font-size: 12px;
+  color: #E63027;
+  font-weight: 500;
+}
+
+/* ── Action buttons ──────────────────────────────────────────────────────── */
+.rl-action-row {
+  display: flex;
+  gap: 12px;
+  margin-top: 4px;
+}
+
+.rl-action-btn {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  padding: 9px 12px;
+  border: 1.5px solid #D1D5DB;
+  border-radius: 8px;
+  background: #fff;
+  color: #364153;
+  font-size: 13px;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+  transition: border-color 0.13s, background 0.13s;
+}
+
+.rl-action-btn:hover:not(:disabled) {
+  border-color: #E63027;
+  color: #E63027;
+  background: #FEF2F2;
+}
+
+.rl-action-btn:disabled { opacity: 0.65; cursor: not-allowed; }
+
+.rl-action-btn--primary {
+  border-color: #E63027;
+  color: #E63027;
+}
+
+/* ── Export error ────────────────────────────────────────────────────────── */
+.rl-export-error {
+  font-size: 12px;
+  color: #E63027;
+  margin-top: 10px;
+  padding: 8px 12px;
+  background: #FEF2F2;
+  border: 1px solid #FECACA;
+  border-radius: 6px;
+}
+
+/* ── Table ───────────────────────────────────────────────────────────────── */
+.rl-table-wrap {
+  overflow-x: auto;
+}
+
+.rl-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+
+.rl-table th {
+  text-align: left;
+  padding: 10px 14px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #697282;
+  border-bottom: 1px solid #E5E5E5;
+  white-space: nowrap;
+}
+
+.rl-table td {
+  padding: 13px 14px;
+  color: #364153;
+  border-bottom: 1px solid #F3F4F6;
+  vertical-align: middle;
+}
+
+.rl-table tr:last-child td { border-bottom: none; }
+.rl-table tbody tr:nth-child(even) td { background: #FAFAFA; }
+
+.rl-table-name {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 500;
+  color: #101727;
+}
+
+.rl-doc-icon {
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  background: #F3F4F6;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  color: #697282;
+}
+
+/* ── Badges ──────────────────────────────────────────────────────────────── */
+.rl-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 9px;
+  border-radius: 20px;
+  font-size: 11.5px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.rl-badge--available {
+  background: #DCFCE7;
+  color: #166534;
+}
+
+.rl-badge--type {
+  background: #F3F4F6;
+  color: #4B5563;
+}
+
+/* ── Icon action buttons ─────────────────────────────────────────────────── */
+.rl-icon-btn {
+  width: 32px;
+  height: 32px;
+  border: none;
+  border-radius: 6px;
+  background: transparent;
+  color: #697282;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  transition: background 0.12s, color 0.12s;
+}
+
+.rl-icon-btn:hover { background: #F3F4F6; color: #101727; }
+
+.rl-actions-cell {
+  display: flex;
+  gap: 4px;
+  align-items: center;
+}
