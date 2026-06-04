@@ -48,7 +48,7 @@ class CenarioControllerTest {
     void salvarRetornaCreated() throws Exception {
         CenarioResponse salvo = new CenarioResponse(
                 1L, "Migração agressiva para PIX", 7L,
-                490.0, 65.0, 425.0, 0.425, 86.73, LocalDateTime.now());
+                490.0, 65.0, 425.0, 0.425, 86.73, null, null, null, LocalDateTime.now());
 
         when(cenarioService.salvar(any())).thenReturn(salvo);
 
@@ -104,8 +104,8 @@ class CenarioControllerTest {
     void listarRetornaCenariosDaEmpresa() throws Exception {
         LocalDateTime agora = LocalDateTime.now();
         List<CenarioResponse> cenarios = List.of(
-                new CenarioResponse(1L, "Cenário A", 7L, 980.0, 130.0, 850.0, 0.85, 86.73, agora),
-                new CenarioResponse(2L, "Cenário B", 7L, 500.0, 250.0, 250.0, 0.25, 50.0, agora.minusDays(1))
+                new CenarioResponse(1L, "Cenário A", 7L, 980.0, 130.0, 850.0, 0.85, 86.73, null, null, null, agora),
+                new CenarioResponse(2L, "Cenário B", 7L, 500.0, 250.0, 250.0, 0.25, 50.0, null, null, null, agora.minusDays(1))
         );
 
         when(cenarioService.listarPorEmpresa(eq(7L))).thenReturn(cenarios);

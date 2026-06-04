@@ -7,10 +7,13 @@ import com.root.calculadoraedenred.repository.TransactionRepository;
 import com.root.calculadoraedenred.model.Transaction;
 import lombok.RequiredArgsConstructor;
 import org.springframework.boot.CommandLineRunner;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDateTime;
+import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Component
 @RequiredArgsConstructor
@@ -18,6 +21,7 @@ public class DataInitializer implements CommandLineRunner {
 
     private final EmissionFactorRepository emissionFactorRepository;
     private final TransactionRepository transactionRepository;
+    private final JdbcTemplate jdbcTemplate;
 
     // Fatores tropicalizados para o Brasil (matriz elétrica MCTI/SIRENE 2023: 38,5 kg CO2/MWh)
     private static final List<EmissionFactor> FATORES = List.of(
@@ -25,11 +29,15 @@ public class DataInitializer implements CommandLineRunner {
         new EmissionFactor(null, PaymentType.NFC,      0.85),
         new EmissionFactor(null, PaymentType.PIX,      0.13),
         new EmissionFactor(null, PaymentType.TED,      0.13),
+        new EmissionFactor(null, PaymentType.WALLET,   0.12),
+        new EmissionFactor(null, PaymentType.QR,       0.05),
         new EmissionFactor(null, PaymentType.UNKNOWN,  0.98)
     );
 
     @Override
     public void run(String... args) {
+        atualizarConstraintPaymentType();
+
         for (EmissionFactor fator : FATORES) {
             emissionFactorRepository.findByPaymentType(fator.getPaymentType())
                 .ifPresentOrElse(
@@ -76,5 +84,13 @@ public class DataInitializer implements CommandLineRunner {
         );
 
         transactionRepository.saveAll(transacoes);
+    }
+
+    private void atualizarConstraintPaymentType() {
+        String valores = Arrays.stream(PaymentType.values())
+                .map(p -> "'" + p.name() + "'")
+                .collect(Collectors.joining(", "));
+        jdbcTemplate.execute("ALTER TABLE emission_factors DROP CONSTRAINT IF EXISTS emission_factors_payment_type_check");
+        jdbcTemplate.execute("ALTER TABLE emission_factors ADD CONSTRAINT emission_factors_payment_type_check CHECK (payment_type IN (" + valores + "))");
     }
 }

@@ -84,11 +84,11 @@ export async function fetchImpact(companyId, period) {
   return res.json();
 }
 
-export async function saveScenario(nome, simulacao) {
+export async function saveScenario(nome, simulacao, extras = {}) {
   const res = await fetch('/cenarios', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ nome, simulacao }),
+    body: JSON.stringify({ nome, simulacao, ...extras }),
   });
   if (!res.ok) {
     let message = 'Erro ao salvar cenário.';

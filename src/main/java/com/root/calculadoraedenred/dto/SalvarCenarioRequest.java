@@ -17,6 +17,15 @@ public class SalvarCenarioRequest {
     @Size(max = 120, message = "nome deve ter no máximo 120 caracteres")
     private String nome;
 
+    @Size(max = 255)
+    private String descricao;
+
+    @Size(max = 50)
+    private String tipoMeio;
+
+    @Size(max = 80)
+    private String categoria;
+
     @NotNull(message = "simulacao é obrigatória")
     @Valid
     private SimulacaoRequest simulacao;

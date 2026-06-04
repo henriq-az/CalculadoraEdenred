@@ -19,19 +19,25 @@ public class CenarioResponse {
     private Double economiaGramas;
     private Double economiaKg;
     private Double percentualReducao;
+    private String descricao;
+    private String tipoMeio;
+    private String categoria;
     private LocalDateTime criadoEm;
 
     public static CenarioResponse fromEntity(SavedScenario entity) {
-        return new CenarioResponse(
-                entity.getId(),
-                entity.getNome(),
-                entity.getEmpresaId(),
-                entity.getEmissoesAtuaisGramas(),
-                entity.getEmissoesSimuladasGramas(),
-                entity.getEconomiaGramas(),
-                entity.getEconomiaGramas() / 1000.0,
-                entity.getPercentualReducao(),
-                entity.getCriadoEm()
-        );
+        CenarioResponse r = new CenarioResponse();
+        r.setId(entity.getId());
+        r.setNome(entity.getNome());
+        r.setEmpresaId(entity.getEmpresaId());
+        r.setEmissoesAtuaisGramas(entity.getEmissoesAtuaisGramas());
+        r.setEmissoesSimuladasGramas(entity.getEmissoesSimuladasGramas());
+        r.setEconomiaGramas(entity.getEconomiaGramas());
+        r.setEconomiaKg(entity.getEconomiaGramas() / 1000.0);
+        r.setPercentualReducao(entity.getPercentualReducao());
+        r.setDescricao(entity.getDescricao());
+        r.setTipoMeio(entity.getTipoMeio());
+        r.setCategoria(entity.getCategoria());
+        r.setCriadoEm(entity.getCriadoEm());
+        return r;
     }
 }

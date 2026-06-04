@@ -36,6 +36,15 @@ public class SavedScenario {
     @Column(nullable = false)
     private Double percentualReducao;
 
+    @Column(length = 255)
+    private String descricao;
+
+    @Column(length = 50)
+    private String tipoMeio;
+
+    @Column(length = 80)
+    private String categoria;
+
     @Column(nullable = false)
     private LocalDateTime criadoEm;
 

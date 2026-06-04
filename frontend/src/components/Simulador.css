@@ -1,0 +1,564 @@
+/* ── Layout ──────────────────────────────────────────────────────── */
+.sim-wrap {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+  align-items: start;
+}
+
+/* ── Panels ──────────────────────────────────────────────────────── */
+.sim-panel {
+  background: #ffffff;
+  border-radius: 16px;
+  border: 1.5px solid #E4E7EB;
+  padding: 28px 28px 24px;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+}
+
+.sim-panel--right {
+  background: transparent;
+  border: none;
+  box-shadow: none;
+  padding: 0;
+  gap: 14px;
+}
+
+.sim-panel-title {
+  font-family: 'Ubuntu', sans-serif;
+  font-size: 17px;
+  font-weight: 700;
+  color: #101727;
+}
+
+.sim-panel-sub {
+  margin-top: -14px;
+  font-family: 'Ubuntu', sans-serif;
+  font-size: 13px;
+  color: #697282;
+}
+
+/* ── Section headings ────────────────────────────────────────────── */
+.sim-section {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.sim-field-title {
+  font-family: 'Ubuntu', sans-serif;
+  font-size: 14.5px;
+  font-weight: 600;
+  color: #101727;
+}
+
+/* ── Slider ──────────────────────────────────────────────────────── */
+.sim-slider-row {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.sim-slider-pct {
+  font-family: 'Ubuntu', sans-serif;
+  font-size: 13.5px;
+  font-weight: 600;
+  color: #101727;
+}
+
+.sim-slider {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: 5px;
+  border-radius: 3px;
+  outline: none;
+  cursor: pointer;
+  background: linear-gradient(to right, #E63027 var(--val, 50%), #E4E7EB var(--val, 50%));
+}
+
+.sim-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: #E63027;
+  cursor: pointer;
+  box-shadow: 0 1px 4px rgba(230,48,39,0.35);
+  border: 2px solid #fff;
+}
+
+.sim-slider::-moz-range-thumb {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: #E63027;
+  cursor: pointer;
+  border: 2px solid #fff;
+}
+
+.sim-slider-label {
+  font-family: 'Ubuntu', sans-serif;
+  font-size: 12.5px;
+  color: #9CA3AF;
+}
+
+/* ── Select ──────────────────────────────────────────────────────── */
+.sim-select-wrap {
+  position: relative;
+}
+
+.sim-select {
+  width: 100%;
+  padding: 11px 40px 11px 14px;
+  border: 1.5px solid #E4E7EB;
+  border-radius: 10px;
+  background: #fff;
+  font-family: 'Ubuntu', sans-serif;
+  font-size: 14px;
+  color: #374151;
+  appearance: none;
+  -webkit-appearance: none;
+  cursor: pointer;
+  outline: none;
+  transition: border-color 0.15s;
+}
+
+.sim-select:focus { border-color: #E63027; }
+
+.sim-select-arrow {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  pointer-events: none;
+}
+
+/* ── Save area ───────────────────────────────────────────────────── */
+.sim-btn-save {
+  width: 100%;
+  height: 46px;
+  border: none;
+  border-radius: 12px;
+  background: linear-gradient(90deg, #FF007D 0%, #E63027 100%);
+  color: #fff;
+  font-family: 'Ubuntu', sans-serif;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity 0.15s;
+  margin-top: 4px;
+}
+
+.sim-btn-save:hover { opacity: 0.9; }
+
+.sim-save-inline {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.sim-save-input {
+  width: 100%;
+  padding: 11px 14px;
+  border: 1.5px solid #E4E7EB;
+  border-radius: 10px;
+  font-family: 'Ubuntu', sans-serif;
+  font-size: 14px;
+  color: #374151;
+  outline: none;
+  box-sizing: border-box;
+  transition: border-color 0.15s;
+}
+
+.sim-save-input:focus { border-color: #E63027; }
+
+.sim-save-actions {
+  display: flex;
+  gap: 10px;
+}
+
+.sim-btn-cancel {
+  flex: 1;
+  height: 42px;
+  border: 1.5px solid #E4E7EB;
+  border-radius: 10px;
+  background: #fff;
+  font-family: 'Ubuntu', sans-serif;
+  font-size: 14px;
+  font-weight: 500;
+  color: #697282;
+  cursor: pointer;
+}
+
+.sim-btn-confirm {
+  flex: 2;
+  height: 42px;
+  border: none;
+  border-radius: 10px;
+  background: linear-gradient(90deg, #FF007D 0%, #E63027 100%);
+  color: #fff;
+  font-family: 'Ubuntu', sans-serif;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity 0.15s;
+}
+
+.sim-btn-confirm:disabled { opacity: 0.6; cursor: not-allowed; }
+.sim-btn-confirm:hover:not(:disabled) { opacity: 0.9; }
+
+.sim-save-msg {
+  font-family: 'Ubuntu', sans-serif;
+  font-size: 13px;
+  padding: 8px 12px;
+  border-radius: 8px;
+}
+
+.sim-save-msg--ok  { background: #ECFDF5; color: #065F46; }
+.sim-save-msg--err { background: #FEF2F2; color: #991B1B; }
+
+/* ── Scenario comparison cards ───────────────────────────────────── */
+.sim-scenarios {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.sim-scenario {
+  flex: 1;
+  border-radius: 14px;
+  padding: 18px 16px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+
+.sim-scenario--atual {
+  background: #fff;
+  border: 1.5px solid #E4E7EB;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+}
+
+.sim-scenario--sim {
+  background: linear-gradient(135deg, #FF007D 0%, #E63027 100%);
+  box-shadow: 0 4px 14px rgba(230,48,39,0.3);
+}
+
+.sim-scenario-label {
+  font-family: 'Ubuntu', sans-serif;
+  font-size: 12px;
+  font-weight: 500;
+  color: #697282;
+  text-align: center;
+}
+
+.sim-scenario--sim .sim-scenario-label {
+  color: rgba(255,255,255,0.85);
+}
+
+.sim-scenario-value {
+  font-family: 'Ubuntu', sans-serif;
+  font-size: 32px;
+  font-weight: 700;
+  color: #101727;
+  line-height: 1;
+}
+
+.sim-scenario--sim .sim-scenario-value { color: #fff; }
+
+.sim-scenario-unit {
+  font-family: 'Ubuntu', sans-serif;
+  font-size: 11.5px;
+  color: #9CA3AF;
+}
+
+.sim-scenario--sim .sim-scenario-unit { color: rgba(255,255,255,0.75); }
+
+.sim-scenario-arrow {
+  font-size: 26px;
+  color: #9CA3AF;
+  flex-shrink: 0;
+  line-height: 1;
+}
+
+/* ── Economy card ────────────────────────────────────────────────── */
+.sim-economy {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  background: #fff;
+  border: 1.5px solid #E4E7EB;
+  border-radius: 14px;
+  padding: 16px 20px;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+}
+
+.sim-economy-body {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.sim-economy-val {
+  font-family: 'Ubuntu', sans-serif;
+  font-size: 18px;
+  font-weight: 700;
+  color: #101727;
+}
+
+.sim-economy-sub {
+  font-family: 'Ubuntu', sans-serif;
+  font-size: 12.5px;
+  color: #697282;
+}
+
+/* ── Equivalences row ────────────────────────────────────────────── */
+.sim-equiv-row {
+  display: flex;
+  gap: 12px;
+}
+
+.sim-equiv {
+  flex: 1;
+  background: #fff;
+  border: 1.5px solid #E4E7EB;
+  border-radius: 14px;
+  padding: 14px 12px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+}
+
+.sim-equiv-num {
+  font-family: 'Ubuntu', sans-serif;
+  font-size: 18px;
+  font-weight: 700;
+  color: #101727;
+}
+
+.sim-equiv-label {
+  font-family: 'Ubuntu', sans-serif;
+  font-size: 12px;
+  color: #697282;
+  text-align: center;
+}
+
+/* ── Comparativo ─────────────────────────────────────────────────── */
+.sim-comp-title {
+  font-family: 'Ubuntu', sans-serif;
+  font-size: 14px;
+  font-weight: 600;
+  color: #101727;
+}
+
+.sim-comp-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  background: #fff;
+  border: 1.5px solid #E4E7EB;
+  border-radius: 14px;
+  padding: 16px 20px;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+}
+
+.sim-comp-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.sim-comp-name {
+  font-family: 'Ubuntu', sans-serif;
+  font-size: 13px;
+  color: #697282;
+  width: 60px;
+  flex-shrink: 0;
+  text-align: right;
+}
+
+.sim-comp-bar-wrap {
+  flex: 1;
+  height: 10px;
+  background: #F0F2F5;
+  border-radius: 5px;
+  overflow: hidden;
+}
+
+.sim-comp-bar {
+  height: 100%;
+  background: linear-gradient(90deg, #FF007D 0%, #E63027 100%);
+  border-radius: 5px;
+  transition: width 0.3s ease;
+  min-width: 4px;
+}
+
+.sim-comp-val {
+  font-family: 'Ubuntu', sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+  color: #374151;
+  width: 54px;
+  flex-shrink: 0;
+}
+
+/* ── Bottom card (full-width) ────────────────────────────────────── */
+.sim-bottom-card {
+  grid-column: 1 / -1;
+  background: #ffffff;
+  border-radius: 16px;
+  border: 1.5px solid #E4E7EB;
+  padding: 28px;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.sim-bottom-title {
+  font-family: 'Ubuntu', sans-serif;
+  font-size: 15px;
+  font-weight: 700;
+  color: #101727;
+}
+
+/* ── Category projection ─────────────────────────────────────────── */
+.sim-cat-row {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+}
+
+.sim-cat-card {
+  background: #fff;
+  border: 1.5px solid #E4E7EB;
+  border-radius: 14px;
+  padding: 18px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+}
+
+.sim-cat-name {
+  font-family: 'Ubuntu', sans-serif;
+  font-size: 13px;
+  color: #9CA3AF;
+}
+
+.sim-cat-value {
+  font-family: 'Ubuntu', sans-serif;
+  font-size: 28px;
+  font-weight: 700;
+  color: #101727;
+  line-height: 1.1;
+}
+
+.sim-cat-best {
+  font-family: 'Ubuntu', sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+  color: #E63027;
+}
+
+/* ── Temporal projection ─────────────────────────────────────────── */
+.sim-temporal-row {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 14px;
+}
+
+.sim-temporal-card {
+  border-radius: 14px;
+  padding: 18px 16px;
+  background: linear-gradient(135deg, #FF007D 0%, #E63027 100%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  box-shadow: 0 4px 12px rgba(230,48,39,0.25);
+}
+
+.sim-temporal-period {
+  font-family: 'Ubuntu', sans-serif;
+  font-size: 13px;
+  color: rgba(255,255,255,0.85);
+  font-weight: 500;
+}
+
+.sim-temporal-value {
+  font-family: 'Ubuntu', sans-serif;
+  font-size: 28px;
+  font-weight: 700;
+  color: #fff;
+  line-height: 1.1;
+}
+
+/* ── Saved scenarios ─────────────────────────────────────────────── */
+.sim-saved-empty {
+  font-family: 'Ubuntu', sans-serif;
+  font-size: 14px;
+  color: #9CA3AF;
+  text-align: center;
+  padding: 24px 0;
+}
+
+.sim-saved-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.sim-saved-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  border: 1.5px solid #E4E7EB;
+  border-radius: 10px;
+  background: #FAFAFA;
+}
+
+.sim-saved-info {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.sim-saved-name {
+  font-family: 'Ubuntu', sans-serif;
+  font-size: 14px;
+  font-weight: 600;
+  color: #101727;
+}
+
+.sim-saved-tag {
+  font-family: 'Ubuntu', sans-serif;
+  font-size: 11px;
+  font-weight: 600;
+  color: #fff;
+  background: #E63027;
+  border-radius: 999px;
+  padding: 2px 10px;
+}
+
+.sim-saved-economy {
+  font-family: 'Ubuntu', sans-serif;
+  font-size: 14px;
+  font-weight: 700;
+  color: #E63027;
+}
+
+@media (max-width: 900px) {
+  .sim-wrap {
+    grid-template-columns: 1fr;
+  }
+  .sim-cat-row       { grid-template-columns: 1fr; }
+  .sim-temporal-row  { grid-template-columns: repeat(2, 1fr); }
+}

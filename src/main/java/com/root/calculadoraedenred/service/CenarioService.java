@@ -25,6 +25,9 @@ public class CenarioService {
 
         SavedScenario entity = new SavedScenario();
         entity.setNome(request.getNome());
+        entity.setDescricao(request.getDescricao());
+        entity.setTipoMeio(request.getTipoMeio());
+        entity.setCategoria(request.getCategoria());
         entity.setEmpresaId(resultado.getEmpresaId());
         entity.setEmissoesAtuaisGramas(resultado.getCenarioAtual().getTotalEmissoesGramas());
         entity.setEmissoesSimuladasGramas(resultado.getCenarioSimulado().getTotalEmissoesGramas());

@@ -17,6 +17,8 @@ import relatorioIcon from '../assets/RelatorioIcon.svg';
 import metasIcon from '../assets/MetasIcon.svg';
 import configuracoesIcon from '../assets/ConfihuraçõesIcon.svg';
 import comparativoIcon from '../assets/ComparativoIcon.svg';
+import Cenarios from './Cenarios';
+import Simulador from './Simulador';
 import './Dashboard.css';
 
 // ── helpers ───────────────────────────────────────────────────────────────────
@@ -487,7 +489,7 @@ export default function Dashboard() {
         <header className="fg-topbar">
           <div className="fg-topbar-left">
             <span className="fg-topbar-title">Painel de Sustentabilidade</span>
-            <span className="fg-topbar-crumb">Dashboard</span>
+            <span className="fg-topbar-crumb">{activePage}</span>
           </div>
           <div className="fg-topbar-right">
             <div className="fg-tabs" role="group" aria-label="Período">
@@ -762,57 +764,12 @@ export default function Dashboard() {
             </>
           )}
 
-          {!loading && !error && activePage === 'Simulador' && (
-            <div className="fg-card">
-              <div className="fg-card-head">
-                <div>
-                  <div className="fg-card-title">Simulador</div>
-                  <div className="fg-card-sub">Digite um ID para buscar um cenário salvo.</div>
-                </div>
-              </div>
-              <div style={{ padding: 16 }}>
-                <p><strong>ActivePage:</strong> {activePage}</p>
-                <div style={{ display: 'flex', gap: 12, alignItems: 'center', margin: '12px 0 20px' }}>
-                  <label htmlFor="scenario-id"><strong>ID do cenário:</strong></label>
-                  <input
-                    id="scenario-id"
-                    value={scenarioId}
-                    onChange={e => setScenarioId(e.target.value)}
-                    placeholder="Ex: 1"
-                    style={{ padding: '8px 10px', borderRadius: 8, border: '1px solid #cfd8cf', minWidth: 120 }}
-                  />
-                  <button
-                    type="button"
-                    className="fg-tab fg-tab--active"
-                    onClick={handleLoadScenario}
-                    disabled={scenarioLoading}
-                  >
-                    {scenarioLoading ? 'Buscando...' : 'Buscar cenário'}
-                  </button>
-                </div>
+          {activePage === 'Cenários' && (
+            <Cenarios companyId={companyId} />
+          )}
 
-                {scenarioError && <div className="fg-error" style={{ marginBottom: 12 }}>{scenarioError}</div>}
-
-                {scenarioData ? (
-                  <div className="fg-card" style={{ marginTop: 16 }}>
-                    <div className="fg-card-head">
-                      <div>
-                        <div className="fg-card-title">{scenarioData.nome}</div>
-                        <div className="fg-card-sub">ID {scenarioData.id} · Empresa {scenarioData.empresaId}</div>
-                      </div>
-                    </div>
-                    <div style={{ padding: 16 }}>
-                      <p><strong>Emissões atuais:</strong> {fmtCo2(scenarioData.emissoesAtuaisGramas)}</p>
-                      <p><strong>Emissões simuladas:</strong> {fmtCo2(scenarioData.emissoesSimuladasGramas)}</p>
-                      <p><strong>Economia:</strong> {fmtCo2(scenarioData.economiaGramas)} ({scenarioData.percentualReducao?.toFixed?.(2) ?? scenarioData.percentualReducao}% redução)</p>
-                      <p><strong>Criado em:</strong> {scenarioData.criadoEm}</p>
-                    </div>
-                  </div>
-                ) : (
-                  <p>Use o campo acima para carregar um cenário salvo pelo ID.</p>
-                )}
-              </div>
-            </div>
+          {activePage === 'Simulador' && (
+            <Simulador companyId={companyId} transactions={transactions} />
           )}
         </main>
       </div>
