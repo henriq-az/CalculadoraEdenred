@@ -255,10 +255,10 @@
   -webkit-mask-size: contain;
 }
 
-.sim-mask-icon--leaf  { mask-image: url("../assets/ic-folha.svg");        -webkit-mask-image: url("../assets/ic-folha.svg"); }
-.sim-mask-icon--tree  { mask-image: url("../assets/Arvore 2.svg");        -webkit-mask-image: url("../assets/Arvore 2.svg"); }
-.sim-mask-icon--car   { mask-image: url("../assets/Carro.svg");           -webkit-mask-image: url("../assets/Carro.svg"); }
-.sim-mask-icon--light { mask-image: url("../assets/Horas de luz ic.svg"); -webkit-mask-image: url("../assets/Horas de luz ic.svg"); }
+.sim-mask-icon--leaf  { mask-image: url("../../assets/ic-folha.svg");        -webkit-mask-image: url("../../assets/ic-folha.svg"); }
+.sim-mask-icon--tree  { mask-image: url("../../assets/arvore2.svg"); -webkit-mask-image: url("../../assets/arvore2.svg"); }
+.sim-mask-icon--car   { mask-image: url("../../assets/Carro.svg");   -webkit-mask-image: url("../../assets/Carro.svg"); }
+.sim-mask-icon--light { mask-image: url("../../assets/lampada.svg"); -webkit-mask-image: url("../../assets/lampada.svg"); }
 
 /* ── Scenario comparison cards ───────────────────────────────────── */
 .sim-scenarios {

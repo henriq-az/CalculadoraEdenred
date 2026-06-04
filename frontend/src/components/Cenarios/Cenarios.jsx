@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useAuth } from '../../context/AuthContext';
 import { listCenarios } from '../../services/api';
 import './Cenarios.css';
 
@@ -60,7 +61,9 @@ function CompareCard({ c }) {
   );
 }
 
-export default function Cenarios({ companyId }) {
+export default function Cenarios() {
+  const { empresa } = useAuth();
+  const companyId = empresa?.id ?? '1';
   const [cenarios, setCenarios]   = useState([]);
   const [loading, setLoading]     = useState(false);
   const [error, setError]         = useState(null);

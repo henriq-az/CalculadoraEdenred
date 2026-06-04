@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
-import { fetchHistory, fetchHistoryForMonth, fetchHistoryForYear, fetchScore, fetchImpact, fetchScenario, exportImpactReport } from '../../services/api';
-import edenredLogo from '../../assets/Edenred_Logo.svg';
-import notificacaoIcon from '../../assets/notificacao.svg';
+import { useOutletContext } from 'react-router-dom';
+import { useAuth } from '../../context/AuthContext';
+import { fetchHistory, fetchHistoryForMonth, fetchHistoryForYear, fetchScore, fetchImpact } from '../../services/api';
+import { LEVELS, getLevel } from '../../lib/sustainability';
 import arvoreIcon from '../../assets/Arvore.svg';
 import maoIcon from '../../assets/Mao.svg';
 import icFolha from '../../assets/ic-folha.svg';
@@ -9,16 +10,7 @@ import icFolha1 from '../../assets/ic-folha-1.svg';
 import pixIcon from '../../assets/Pix.svg';
 import nfcIcon from '../../assets/NFC.svg';
 import transacoesIcon from '../../assets/transacoes.svg';
-import homeIcon from '../../assets/HomeIcon.svg';
-import folhaIcon from '../../assets/FolhaIcon.svg';
-import simuladorIcon from '../../assets/SimuladorIcon.svg';
-import cenariosIcon from '../../assets/CenariosIcon.svg';
-import relatorioIcon from '../../assets/RelatorioIcon.svg';
-import metasIcon from '../../assets/MetasIcon.svg';
-import configuracoesIcon from '../../assets/ConfihuraçõesIcon.svg';
 import comparativoIcon from '../../assets/ComparativoIcon.svg';
-import Cenarios from '../Cenarios/Cenarios';
-import Simulador from '../Simulador/Simulador';
 import './Dashboard.css';
 
 // ── helpers ───────────────────────────────────────────────────────────────────
@@ -38,77 +30,11 @@ function deriveDates(period) {
   return { start, end };
 }
 
-function buildExportPayload(companyId, transactions) {
-  const counts = transactions.reduce((acc, tx) => {
-    const key = tx.paymentType || 'UNKNOWN';
-    acc[key] = (acc[key] || 0) + 1;
-    return acc;
-  }, {});
-  return {
-    empresaId: Number(companyId),
-    itens: Object.entries(counts).map(([paymentType, quantidade]) => ({ paymentType, quantidade })),
-  };
-}
-
 function fmtCo2(grams) {
   if (grams >= 1_000_000) return `${(grams / 1_000_000).toFixed(1)}t`;
   if (grams >= 1_000)     return `${(grams / 1_000).toFixed(1)}kg`;
   return `${Math.round(grams)}g`;
 }
-
-const LEVELS = [
-  { min: 0,  max: 33,  name: 'Semente', badge: 'Iniciante'         },
-  { min: 34, max: 66,  name: 'Broto',   badge: 'Em progresso'      },
-  { min: 67, max: 100, name: 'Árvore',  badge: 'Amigo da natureza' },
-];
-
-function getLevel(s) {
-  if (s >= 67) return 2;
-  if (s >= 34) return 1;
-  return 0;
-}
-
-function buildCategoryRanking(transactions) {
-  const byCategory = transactions.reduce((acc, tx) => {
-    const category = tx.category || 'OUTROS';
-    if (!acc[category]) acc[category] = [];
-    acc[category].push(tx);
-    return acc;
-  }, {});
-
-  return Object.entries(byCategory).map(([category, items]) => {
-    const currentCo2 = items.reduce((sum, tx) => sum + (tx.co2Grams ?? 0), 0);
-    const physicalCount = items.filter(tx => tx.paymentType === 'PHYSICAL').length;
-    const digitalCo2 = items
-      .filter(tx => tx.paymentType !== 'PHYSICAL' && tx.paymentType !== 'UNKNOWN')
-      .reduce((sum, tx) => sum + (tx.co2Grams ?? 0), 0);
-
-    const options = [
-      { paymentType: 'PIX', factor: 0.13 },
-      { paymentType: 'NFC', factor: 0.85 },
-      { paymentType: 'TED', factor: 0.13 },
-      { paymentType: 'WALLET', factor: 0.12 },
-      { paymentType: 'QR', factor: 0.05 },
-    ].map(option => {
-      const projectedCo2 = digitalCo2 + (physicalCount * option.factor);
-      return {
-        paymentType: option.paymentType,
-        projectedCo2,
-        savedCo2: currentCo2 - projectedCo2,
-      };
-    }).sort((a, b) => a.projectedCo2 - b.projectedCo2);
-
-    return {
-      category,
-      currentCo2,
-      physicalCount,
-      options,
-      bestOption: options[0] || null,
-    };
-  });
-}
-
-// ── Tree Icon ────────────────────────────────────────────────────────────────
 
 // ── Chart ─────────────────────────────────────────────────────────────────────
 const PHYSICAL_CO2  = 0.98;
@@ -281,46 +207,17 @@ function HistChart({ data }) {
   );
 }
 
-// ── Nav ───────────────────────────────────────────────────────────────────────
-const NAV_ITEMS = [
-  { label: 'Dashboard'     },
-  { label: 'Simulador'     },
-  { label: 'Cenários'      },
-  { label: 'Relatórios'    },
-  { label: 'Metas'         },
-  { label: 'Configurações' },
-];
-
-const NAV_ICONS = {
-  Dashboard:   <img src={homeIcon}            alt="Dashboard"     width="18" height="18" />,
-  Simulador:   <img src={simuladorIcon}       alt="Simulador"     width="18" height="18" />,
-  Cenários:    <img src={cenariosIcon}        alt="Cenários"      width="18" height="18" />,
-  Relatórios:  <img src={relatorioIcon}       alt="Relatórios"    width="18" height="18" />,
-  Metas:       <img src={metasIcon}           alt="Metas"         width="18" height="18" />,
-  'Configurações': <img src={configuracoesIcon} alt="Configurações" width="18" height="18" />,
-};
-
 const PAYMENT_TYPES = [
   { key: 'PIX', label: 'PIX', icon: <img src={pixIcon} alt="PIX" width="22" height="22" /> },
   { key: 'NFC', label: 'NFC', icon: <img src={nfcIcon} alt="NFC" width="18" height="22" /> },
   { key: 'TED', label: 'Transferência bancária', icon: <img src={transacoesIcon} alt="Transferência bancária" width="22" height="22" /> },
 ];
 
-const PERIODS = [
-  { value: 'weekly',  label: 'Semana' },
-  { value: 'monthly', label: 'Mês'    },
-  { value: 'yearly',  label: 'Ano'    },
-];
-
 // ── Component ─────────────────────────────────────────────────────────────────
 export default function Dashboard() {
-  const [companyId, setCompanyId]         = useState('1');
-  const [activePage, setActivePage]       = useState('Dashboard');
-  const [period, setPeriod]               = useState('monthly');
-  const [scenarioId, setScenarioId]       = useState('1');
-  const [scenarioData, setScenarioData]   = useState(null);
-  const [scenarioLoading, setScenarioLoading] = useState(false);
-  const [scenarioError, setScenarioError] = useState(null);
+  const { empresa }                       = useAuth();
+  const companyId                         = empresa?.id ?? '1';
+  const { period }                        = useOutletContext();
   const [impact, setImpact]               = useState(null);
   const [score, setScore]                 = useState(null);
   const [transactions, setTransactions]   = useState([]);
@@ -329,8 +226,6 @@ export default function Dashboard() {
   const [histMonth, setHistMonth]         = useState(new Date().getMonth());
   const [loading, setLoading]             = useState(false);
   const [error, setError]                 = useState(null);
-  const [exportLoading, setExportLoading] = useState(false);
-  const [exportError, setExportError]     = useState(null);
 
   useEffect(() => {
     if (!companyId) return;
@@ -378,41 +273,6 @@ export default function Dashboard() {
     return () => { cancelled = true; };
   }, [companyId, period, histYear, histMonth]);
 
-  async function handleExport() {
-    setExportError(null);
-    setExportLoading(true);
-    try {
-      const payload = buildExportPayload(companyId, transactions);
-      const { blob, filename } = await exportImpactReport(payload);
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = filename || 'relatorio-impacto.pdf';
-      document.body.appendChild(a);
-      a.click();
-      a.remove();
-      window.URL.revokeObjectURL(url);
-    } catch {
-      setExportError('Não foi possível gerar o relatório. Tente novamente.');
-    } finally {
-      setExportLoading(false);
-    }
-  }
-
-  async function handleLoadScenario() {
-    setScenarioError(null);
-    setScenarioLoading(true);
-    try {
-      const data = await fetchScenario(scenarioId);
-      setScenarioData(data);
-    } catch (err) {
-      setScenarioData(null);
-      setScenarioError(err.message);
-    } finally {
-      setScenarioLoading(false);
-    }
-  }
-
   const rawScore   = Number((score?.score ?? 0).toFixed(2));
   const lvlIdx     = getLevel(rawScore);
   const lvlData    = LEVELS[lvlIdx];
@@ -443,94 +303,13 @@ export default function Dashboard() {
   const redPct  = avgPhys > 0 ? Math.round((1 - avgDig / avgPhys) * 100) : 95;
   const benchPct = digitalPct || 72;
 
-  const categoryRanking = buildCategoryRanking(transactions);
-
   return (
-    <div className="fg-layout">
+    <>
+      {loading && <div className="fg-loading">Carregando…</div>}
+      {error   && <div className="fg-error">{error}</div>}
 
-      {/* SIDEBAR */}
-      <aside className="fg-sidebar">
-        <div className="fg-logo">
-          <img src={edenredLogo} alt="Edenred" height="40" />
-        </div>
-
-        <nav className="fg-nav">
-          {NAV_ITEMS.map(item => (
-            <a
-              key={item.label}
-              href="#"
-              className={`fg-nav-link${activePage === item.label ? ' fg-nav-link--active' : ''}`}
-              onClick={e => {
-                e.preventDefault();
-                setActivePage(item.label);
-              }}
-            >
-              <span className="fg-nav-icon">{NAV_ICONS[item.label]}</span>
-              <span className="fg-nav-label">{item.label}</span>
-            </a>
-          ))}
-        </nav>
-
-        <div className="fg-sidebar-level-card">
-          <div className="fg-sidebar-level-title">
-            <img src={folhaIcon} alt="" width="16" height="16" />
-            <span className="fg-sidebar-level-title-text">Nível de Sustentabilidade</span>
-          </div>
-          <div className="fg-sidebar-level-badge">
-            <span className="fg-sidebar-level-badge-text">{lvlData.name}</span>
-          </div>
-        </div>
-      </aside>
-
-      {/* MAIN */}
-      <div className="fg-main">
-
-        {/* TOPBAR */}
-        <header className="fg-topbar">
-          <div className="fg-topbar-left">
-            <span className="fg-topbar-title">Painel de Sustentabilidade</span>
-            <span className="fg-topbar-crumb">{activePage}</span>
-          </div>
-          <div className="fg-topbar-right">
-            <div className="fg-tabs" role="group" aria-label="Período">
-              {PERIODS.map(p => (
-                <button
-                  key={p.value}
-                  className={`fg-tab${period === p.value ? ' fg-tab--active' : ''}`}
-                  onClick={() => setPeriod(p.value)}
-                >
-                  {p.label}
-                </button>
-              ))}
-            </div>
-
-            <button className="fg-bell" aria-label="Notificações">
-              <img src={notificacaoIcon} width="36" height="36" alt="Notificações" />
-            </button>
-
-            <div className="fg-topbar-user">
-              <div className="fg-topbar-user-info">
-                <span className="fg-user-name">João Silva</span>
-                <span className="fg-user-role">Gestor</span>
-              </div>
-              <div className="fg-avatar">
-                <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <circle cx="8" cy="5.3" r="2.65" fill="white"/>
-                  <path d="M3.3 13c0-2.6 2.1-4.7 4.7-4.7s4.7 2.1 4.7 4.7" stroke="white" strokeWidth="1.2" strokeLinecap="round" fill="none"/>
-                </svg>
-              </div>
-            </div>
-          </div>
-        </header>
-
-        {/* CONTENT */}
-        <main className="fg-content">
-
-{loading && <div className="fg-loading">Carregando…</div>}
-          {error   && <div className="fg-error">{error}</div>}
-
-          {!loading && !error && activePage === 'Dashboard' && (
-            <>
+      {!loading && !error && (
+        <>
               {/* KPI ROW */}
               <div className="fg-kpi-row">
                 <div className="fg-kpi-card fg-kpi-card--co2">
@@ -761,18 +540,8 @@ export default function Dashboard() {
                   </div>
                 </div>
               </div>
-            </>
-          )}
-
-          {activePage === 'Cenários' && (
-            <Cenarios companyId={companyId} />
-          )}
-
-          {activePage === 'Simulador' && (
-            <Simulador companyId={companyId} transactions={transactions} />
-          )}
-        </main>
-      </div>
-    </div>
+        </>
+      )}
+    </>
   );
 }

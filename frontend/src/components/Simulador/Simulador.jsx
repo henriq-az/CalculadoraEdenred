@@ -1,6 +1,15 @@
 import { useState, useMemo, useEffect, useCallback } from 'react';
-import { saveScenario, listCenarios } from '../../services/api';
+import { useAuth } from '../../context/AuthContext';
+import { saveScenario, listCenarios, fetchHistory } from '../../services/api';
 import './Simulador.css';
+
+// Janela do mês atual (YYYY-MM-DD) pra buscar as transações da simulação.
+function mesAtual() {
+  const now = new Date();
+  const end = now.toISOString().slice(0, 10);
+  const start = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().slice(0, 10);
+  return { start, end };
+}
 
 // g CO₂ por transação (espelha DataInitializer do backend)
 const FACTORS = { PIX: 0.13, NFC: 0.85, TED: 0.13, WALLET: 0.12, QR: 0.05, PHYSICAL: 0.98, UNKNOWN: 0.98 };
@@ -85,7 +94,10 @@ const BEST_TYPE = DIGITAL_TYPES.reduce((best, t) =>
   (FACTORS[t.key] ?? 1) < (FACTORS[best.key] ?? 1) ? t : best
 );
 
-export default function Simulador({ companyId, transactions }) {
+export default function Simulador() {
+  const { empresa } = useAuth();
+  const companyId = empresa?.id ?? '1';
+  const [transactions, setTransactions]     = useState([]);
   const [migrationPct, setMigrationPct]     = useState(50);
   const [paymentType, setPaymentType]       = useState('PIX');
   const [categoria, setCategoria]           = useState('all');
@@ -95,6 +107,17 @@ export default function Simulador({ companyId, transactions }) {
   const [saving, setSaving]                 = useState(false);
   const [saveMsg, setSaveMsg]               = useState(null);
   const [savedScenarios, setSavedScenarios] = useState([]);
+
+  // Busca as transações do mês atual (antes vinha como prop do Dashboard).
+  useEffect(() => {
+    if (!companyId) return;
+    let cancelled = false;
+    const { start, end } = mesAtual();
+    fetchHistory(companyId, start, end)
+      .then(txs => { if (!cancelled) setTransactions(txs); })
+      .catch(() => { if (!cancelled) setTransactions([]); });
+    return () => { cancelled = true; };
+  }, [companyId]);
 
   const agg         = useMemo(() => extractAgg(transactions), [transactions]);
   const result      = useMemo(() => computeSim(agg, migrationPct, paymentType, volumePct), [agg, migrationPct, paymentType, volumePct]);

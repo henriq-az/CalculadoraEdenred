@@ -82,6 +82,12 @@
   color: #CC2222;
 }
 
+/* Itens do menu ainda sem rota (Relatórios/Metas/Configurações) */
+.fg-nav-link--disabled {
+  opacity: 0.4;
+  pointer-events: none;
+}
+
 .fg-nav-icon {
   width: 20px;
   display: flex;
@@ -397,6 +403,12 @@
   display: flex;
   flex-direction: column;
   gap: 16px;
+}
+
+/* Barra do seletor de período, no topo da página Dashboard */
+.fg-dash-toolbar {
+  display: flex;
+  justify-content: flex-end;
 }
 
 .fg-loading { text-align: center; padding: 48px; color: #697282; }
