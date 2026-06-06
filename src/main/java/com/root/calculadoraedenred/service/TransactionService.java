@@ -34,6 +34,16 @@ public class TransactionService {
         PaymentType.UNKNOWN,  0.98
     ));
 
+    private static final Map<PaymentType, Double> SCORE_WEIGHTS = new EnumMap<>(Map.of(
+        PaymentType.PIX,      1.00,
+        PaymentType.TED,      1.00,
+        PaymentType.QR,       1.00,
+        PaymentType.WALLET,   0.75,
+        PaymentType.NFC,      0.40,
+        PaymentType.PHYSICAL, 0.00,
+        PaymentType.UNKNOWN,  0.00
+    ));
+
     public List<TransactionDTO> getHistory(Long companyId, LocalDate startDate, LocalDate endDate) {
         Map<PaymentType, Double> factors = buildFactorMap();
         return transactionRepository
@@ -62,9 +72,11 @@ public class TransactionService {
 
         double baselineCO2 = transactions.size() * physicalFactor;
         double co2Saved = baselineCO2 - actualCO2;
-        double score = baselineCO2 > 0
-            ? Math.max(0, Math.min(100, (co2Saved / baselineCO2) * 100))
-            : 0;
+        double somaGanhos = transactions.stream()
+            .mapToDouble(t -> SCORE_WEIGHTS.getOrDefault(t.getPaymentType(), 0.0))
+            .sum();
+        double score = transactions.isEmpty() ? 0.0
+            : Math.min(100, (somaGanhos / transactions.size()) * 100);
 
         long digitalCount = transactions.stream()
             .filter(t -> t.getPaymentType() != PaymentType.PHYSICAL
@@ -106,9 +118,9 @@ public class TransactionService {
     }
 
     private String resolveLabel(double score) {
-        if (score < 25) return "Semente";
-        if (score < 50) return "Arbusto";
-        if (score < 75) return "Árvore";
+        if (score <= 15.0) return "Semente";
+        if (score <= 50.0) return "Arbusto";
+        if (score <= 85.0) return "Árvore";
         return "Floresta";
     }
 
