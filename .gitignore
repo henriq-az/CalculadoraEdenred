@@ -37,3 +37,6 @@ src/main/resources/application.properties
 
 #claude
 .claude
+
+#macOS
+.DS_Store

@@ -298,3 +298,110 @@
     grid-template-columns: 1fr;
   }
 }
+
+/* ── Buscar por ID ──────────────────────────────────────────────────── */
+.cn-search-section {
+  background: #ffffff;
+  border-radius: 16px;
+  border: 1.5px solid #E4E7EB;
+  padding: 24px;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.cn-search-header {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.cn-search-header h3 {
+  font-family: 'Ubuntu', sans-serif;
+  font-size: 16px;
+  font-weight: 700;
+  color: #101727;
+  margin: 0;
+}
+
+.cn-search-header p {
+  font-family: 'Ubuntu', sans-serif;
+  font-size: 13px;
+  color: #9CA3AF;
+  margin: 0;
+}
+
+.cn-search-form {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+.cn-search-input {
+  flex: 1;
+  height: 40px;
+  padding: 8px 12px;
+  border: 1.2px solid #D1D5DB;
+  border-radius: 8px;
+  font-family: 'Ubuntu', sans-serif;
+  font-size: 14px;
+  color: #101727;
+  background: #ffffff;
+  transition: border-color 0.2s;
+}
+
+.cn-search-input:focus {
+  outline: none;
+  border-color: #FF4B6E;
+}
+
+.cn-search-input::placeholder {
+  color: #9CA3AF;
+}
+
+.cn-search-btn {
+  height: 40px;
+  padding: 8px 20px;
+  background: linear-gradient(90deg, #FF4B6E 0%, #E63027 100%);
+  color: #ffffff;
+  border: none;
+  border-radius: 8px;
+  font-family: 'Ubuntu', sans-serif;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity 0.2s, transform 0.1s;
+  white-space: nowrap;
+}
+
+.cn-search-btn:hover:not(:disabled) {
+  opacity: 0.9;
+}
+
+.cn-search-btn:active:not(:disabled) {
+  transform: scale(0.98);
+}
+
+.cn-search-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.cn-search-error {
+  padding: 10px 12px;
+  background: #FEE5E3;
+  border: 1px solid #E63027;
+  border-radius: 8px;
+  color: #E63027;
+  font-family: 'Ubuntu', sans-serif;
+  font-size: 13px;
+}
+
+.cn-search-result {
+  margin-top: 12px;
+  padding-top: 16px;
+  border-top: 1px solid #F0F2F5;
+}
+
+

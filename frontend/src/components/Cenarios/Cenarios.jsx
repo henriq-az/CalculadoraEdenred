@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../../context/AuthContext';
-import { listCenarios } from '../../services/api';
+import { listCenarios, fetchScenario } from '../../services/api';
 import './Cenarios.css';
 
 function formatDate(isoString) {
@@ -69,6 +69,12 @@ export default function Cenarios() {
   const [error, setError]         = useState(null);
   const [selected, setSelected]   = useState(null);
 
+  // Estados para buscar cenário por ID
+  const [searchId, setSearchId]           = useState('');
+  const [searchedScenario, setSearchedScenario] = useState(null);
+  const [searchLoading, setSearchLoading] = useState(false);
+  const [searchError, setSearchError]     = useState(null);
+
   useEffect(() => {
     if (!companyId) return;
     let cancelled = false;
@@ -86,88 +92,148 @@ export default function Cenarios() {
     return () => { cancelled = true; };
   }, [companyId]);
 
+  const handleSearchScenario = async () => {
+    if (!searchId.trim()) {
+      setSearchError('Digite um ID válido');
+      return;
+    }
+    let cancelled = false;
+    setSearchLoading(true);
+    setSearchError(null);
+    setSearchedScenario(null);
+    try {
+      const data = await fetchScenario(searchId);
+      if (!cancelled) {
+        setSearchedScenario(data);
+      }
+    } catch (err) {
+      if (!cancelled) {
+        setSearchError(err.message);
+      }
+    } finally {
+      if (!cancelled) setSearchLoading(false);
+    }
+  };
+
   if (loading) return <div className="cn-state">Carregando cenários…</div>;
   if (error)   return <div className="cn-state cn-state--error">{error}</div>;
 
-  if (cenarios.length === 0) {
-    return (
-      <div className="cn-empty">
-        <svg width="48" height="48" viewBox="0 0 48 48" fill="none">
-          <rect x="6" y="10" width="36" height="32" rx="4" stroke="#D1D5DB" strokeWidth="2"/>
-          <path d="M16 6v8M32 6v8" stroke="#D1D5DB" strokeWidth="2" strokeLinecap="round"/>
-          <path d="M6 20h36" stroke="#D1D5DB" strokeWidth="2"/>
-          <path d="M18 30h12M24 24v12" stroke="#D1D5DB" strokeWidth="2" strokeLinecap="round"/>
-        </svg>
-        <p className="cn-empty-title">Nenhum cenário salvo</p>
-        <p className="cn-empty-sub">Use o Simulador para criar e comparar cenários de redução de CO₂.</p>
-      </div>
-    );
-  }
-
   return (
     <div className="cn-wrapper">
-    <div className="cn-grid">
-      {cenarios.map(c => {
-        const isSelected     = selected === c.id;
-        const economiaKgMes  = (c.economiaGramas ?? 0) / 1000;
-        const economiaKgAno  = economiaKgMes * 12;
-        const atualKg        = (c.emissoesAtuaisGramas ?? 0) / 1000;
-        const projetadoKg    = (c.emissoesSimuladasGramas ?? 0) / 1000;
-        const pct            = Math.round(c.percentualReducao ?? 0);
-
-        return (
-          <div
-            key={c.id}
-            className={`cn-card${isSelected ? ' cn-card--selected' : ''}`}
-            onClick={() => setSelected(c.id)}
+      {/* Seção de busca por ID */}
+      <div className="cn-search-section">
+        <div className="cn-search-header">
+          <h3>Buscar cenário por ID</h3>
+          <p>Digite o ID de um cenário salvo para visualizá-lo</p>
+        </div>
+        <div className="cn-search-form">
+          <input
+            type="text"
+            placeholder="Ex: 1, 2, 3..."
+            value={searchId}
+            onChange={(e) => {
+              setSearchId(e.target.value);
+              setSearchError(null);
+            }}
+            onKeyPress={(e) => {
+              if (e.key === 'Enter') handleSearchScenario();
+            }}
+            className="cn-search-input"
+          />
+          <button
+            onClick={handleSearchScenario}
+            disabled={searchLoading}
+            className="cn-search-btn"
           >
-            <div className="cn-card-title">{c.nome}</div>
-
-            <div className="cn-card-date">
-              <CalendarIcon />
-              <span>{formatDate(c.criadoEm)}</span>
-            </div>
-
-            <div className="cn-card-desc">
-              {c.descricao ?? `${pct}% de redução nas emissões de CO₂`}
-            </div>
-
-            <div className="cn-tags">
-              {c.tipoMeio && (
-                <span className="cn-tag cn-tag--payment">
-                  {c.tipoMeio}
-                </span>
-              )}
-              {c.categoria && (
-                <span className="cn-tag cn-tag--outline">{c.categoria}</span>
-              )}
-              <span className="cn-tag cn-tag--outline">{pct}% de redução</span>
-            </div>
-
-            <hr className="cn-divider" />
-
-            <div className="cn-co2-row">
-              <div className="cn-co2-left">
-                <div className="cn-co2-line">CO₂ atual: {atualKg.toFixed(1)}Kg/mês</div>
-                <div className="cn-co2-line">Projetado: {projetadoKg.toFixed(1)}Kg/mês</div>
-              </div>
-              <div className="cn-co2-right">
-                <div className="cn-co2-saving">-{economiaKgMes.toFixed(1)}Kg/mês</div>
-                <div className="cn-co2-annual">{economiaKgAno.toFixed(1)}Kg/ano</div>
-              </div>
-            </div>
+            {searchLoading ? 'Buscando…' : 'Buscar'}
+          </button>
+        </div>
+        {searchError && <div className="cn-search-error">{searchError}</div>}
+        {searchedScenario && (
+          <div className="cn-search-result">
+            <CompareCard c={searchedScenario} />
           </div>
-        );
-      })}
-    </div>
-
-    <div className="cn-compare">
-      <div className="cn-compare-header">
-        <div className="cn-compare-title">Comparação de cenários</div>
-        <div className="cn-compare-sub">Análise lado a lado dos cenários selecionados</div>
+        )}
       </div>
-      {cenarios.map(c => <CompareCard key={c.id} c={c} />)}
-    </div>
+
+      {/* Cenários salvos da empresa */}
+      {cenarios.length === 0 ? (
+        <div className="cn-empty">
+          <svg width="48" height="48" viewBox="0 0 48 48" fill="none">
+            <rect x="6" y="10" width="36" height="32" rx="4" stroke="#D1D5DB" strokeWidth="2"/>
+            <path d="M16 6v8M32 6v8" stroke="#D1D5DB" strokeWidth="2" strokeLinecap="round"/>
+            <path d="M6 20h36" stroke="#D1D5DB" strokeWidth="2"/>
+            <path d="M18 30h12M24 24v12" stroke="#D1D5DB" strokeWidth="2" strokeLinecap="round"/>
+          </svg>
+          <p className="cn-empty-title">Nenhum cenário salvo</p>
+          <p className="cn-empty-sub">Use o Simulador para criar e comparar cenários de redução de CO₂.</p>
+        </div>
+      ) : (
+        <>
+          <div className="cn-grid">
+            {cenarios.map(c => {
+              const isSelected     = selected === c.id;
+              const economiaKgMes  = (c.economiaGramas ?? 0) / 1000;
+              const economiaKgAno  = economiaKgMes * 12;
+              const atualKg        = (c.emissoesAtuaisGramas ?? 0) / 1000;
+              const projetadoKg    = (c.emissoesSimuladasGramas ?? 0) / 1000;
+              const pct            = Math.round(c.percentualReducao ?? 0);
+
+              return (
+                <div
+                  key={c.id}
+                  className={`cn-card${isSelected ? ' cn-card--selected' : ''}`}
+                  onClick={() => setSelected(c.id)}
+                >
+                  <div className="cn-card-title">{c.nome}</div>
+
+                  <div className="cn-card-date">
+                    <CalendarIcon />
+                    <span>{formatDate(c.criadoEm)}</span>
+                  </div>
+
+                  <div className="cn-card-desc">
+                    {c.descricao ?? `${pct}% de redução nas emissões de CO₂`}
+                  </div>
+
+                  <div className="cn-tags">
+                    {c.tipoMeio && (
+                      <span className="cn-tag cn-tag--payment">
+                        {c.tipoMeio}
+                      </span>
+                    )}
+                    {c.categoria && (
+                      <span className="cn-tag cn-tag--outline">{c.categoria}</span>
+                    )}
+                    <span className="cn-tag cn-tag--outline">{pct}% de redução</span>
+                  </div>
+
+                  <hr className="cn-divider" />
+
+                  <div className="cn-co2-row">
+                    <div className="cn-co2-left">
+                      <div className="cn-co2-line">CO₂ atual: {atualKg.toFixed(1)}Kg/mês</div>
+                      <div className="cn-co2-line">Projetado: {projetadoKg.toFixed(1)}Kg/mês</div>
+                    </div>
+                    <div className="cn-co2-right">
+                      <div className="cn-co2-saving">-{economiaKgMes.toFixed(1)}Kg/mês</div>
+                      <div className="cn-co2-annual">{economiaKgAno.toFixed(1)}Kg/ano</div>
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+
+          <div className="cn-compare">
+            <div className="cn-compare-header">
+              <div className="cn-compare-title">Comparação de cenários</div>
+              <div className="cn-compare-sub">Análise lado a lado dos cenários selecionados</div>
+            </div>
+            {cenarios.map(c => <CompareCard key={c.id} c={c} />)}
+          </div>
+        </>
+      )}
     </div>
   );
 }

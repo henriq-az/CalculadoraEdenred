@@ -40,4 +40,15 @@ public class GlobalExceptionHandler {
                 .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE + ";charset=UTF-8")
                 .body(response);
     }
+
+    @ExceptionHandler(CenarioNaoEncontradoException.class)
+    public ResponseEntity<ErrorResponse> handleCenarioNaoEncontrado(CenarioNaoEncontradoException ex) {
+        ErrorResponse response = new ErrorResponse(
+                HttpStatus.NOT_FOUND.value(),
+                ex.getMessage(),
+                Instant.now());
+        return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE + ";charset=UTF-8")
+                .body(response);
+    }
 }

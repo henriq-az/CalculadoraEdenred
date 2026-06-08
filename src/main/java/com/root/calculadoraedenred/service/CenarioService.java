@@ -4,6 +4,7 @@ import com.root.calculadoraedenred.dto.CenarioResponse;
 import com.root.calculadoraedenred.dto.SalvarCenarioRequest;
 import com.root.calculadoraedenred.dto.ScenarioSummaryResponse;
 import com.root.calculadoraedenred.dto.SimulacaoResponse;
+import com.root.calculadoraedenred.exception.CenarioNaoEncontradoException;
 import com.root.calculadoraedenred.model.SavedScenario;
 import com.root.calculadoraedenred.repository.SavedScenarioRepository;
 import org.springframework.stereotype.Service;
@@ -48,5 +49,11 @@ public class CenarioService {
         return repository.findByEmpresaIdOrderByCriadoEmDesc(empresaId).stream()
                 .map(ScenarioSummaryResponse::fromEntity)
                 .toList();
+    }
+
+    public CenarioResponse buscarPorId(Long id) {
+        SavedScenario entity = repository.findById(id)
+                .orElseThrow(() -> new CenarioNaoEncontradoException(id));
+        return CenarioResponse.fromEntity(entity);
     }
 }
