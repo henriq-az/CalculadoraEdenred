@@ -69,9 +69,9 @@ export default function Cenarios() {
   const [error, setError]         = useState(null);
   const [selected, setSelected]   = useState(null);
 
-  // Estados para buscar cenário por ID
-  const [searchId, setSearchId]           = useState('');
-  const [searchedScenario, setSearchedScenario] = useState(null);
+  // Busca por nome do cenário ou ID
+  const [searchTerm, setSearchTerm]       = useState('');
+  const [searchResults, setSearchResults] = useState([]);
   const [searchLoading, setSearchLoading] = useState(false);
   const [searchError, setSearchError]     = useState(null);
 
@@ -93,18 +93,35 @@ export default function Cenarios() {
   }, [companyId]);
 
   const handleSearchScenario = async () => {
-    if (!searchId.trim()) {
-      setSearchError('Digite um ID válido');
+    const term = searchTerm.trim();
+
+    if (!term) {
+      setSearchError('Digite um nome ou ID válido');
       return;
     }
+
+    setSearchError(null);
+    setSearchResults([]);
+
+    if (!/^\d+$/.test(term)) {
+      const matches = cenarios.filter(c =>
+        (c.nome ?? '').toLowerCase().includes(term.toLowerCase())
+      );
+
+      if (matches.length === 0) {
+        setSearchError('Nenhum cenário encontrado com esse nome.');
+      } else {
+        setSearchResults(matches);
+      }
+      return;
+    }
+
     let cancelled = false;
     setSearchLoading(true);
-    setSearchError(null);
-    setSearchedScenario(null);
     try {
-      const data = await fetchScenario(searchId);
+      const data = await fetchScenario(term);
       if (!cancelled) {
-        setSearchedScenario(data);
+        setSearchResults([data]);
       }
     } catch (err) {
       if (!cancelled) {
@@ -120,20 +137,21 @@ export default function Cenarios() {
 
   return (
     <div className="cn-wrapper">
-      {/* Seção de busca por ID */}
+      {/* Seção de busca por nome ou ID */}
       <div className="cn-search-section">
         <div className="cn-search-header">
-          <h3>Buscar cenário por ID</h3>
-          <p>Digite o ID de um cenário salvo para visualizá-lo</p>
+          <h3>Buscar cenário por nome ou ID</h3>
+          <p>Digite o ID ou parte do nome de um cenário salvo para visualizá-lo</p>
         </div>
         <div className="cn-search-form">
           <input
             type="text"
-            placeholder="Ex: 1, 2, 3..."
-            value={searchId}
+            placeholder="Ex: 1 ou nome do cenário"
+            value={searchTerm}
             onChange={(e) => {
-              setSearchId(e.target.value);
+              setSearchTerm(e.target.value);
               setSearchError(null);
+              setSearchResults([]);
             }}
             onKeyPress={(e) => {
               if (e.key === 'Enter') handleSearchScenario();
@@ -149,9 +167,16 @@ export default function Cenarios() {
           </button>
         </div>
         {searchError && <div className="cn-search-error">{searchError}</div>}
-        {searchedScenario && (
+        {searchResults.length > 0 && (
           <div className="cn-search-result">
-            <CompareCard c={searchedScenario} />
+            <div className="cn-search-result-title">
+              {searchResults.length === 1 ? 'Resultado da busca' : `Resultados da busca (${searchResults.length})`}
+            </div>
+            <div className="cn-search-result-list">
+              {searchResults.map(c => (
+                <CompareCard key={c.id} c={c} />
+              ))}
+            </div>
           </div>
         )}
       </div>

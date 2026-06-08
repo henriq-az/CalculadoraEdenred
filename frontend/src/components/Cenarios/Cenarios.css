@@ -404,4 +404,18 @@
   border-top: 1px solid #F0F2F5;
 }
 
+.cn-search-result-title {
+  font-family: 'Ubuntu', sans-serif;
+  font-size: 14px;
+  font-weight: 700;
+  color: #101727;
+  margin-bottom: 14px;
+}
+
+.cn-search-result-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
 
