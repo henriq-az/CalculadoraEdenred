@@ -2,6 +2,7 @@ package com.root.calculadoraedenred.service;
 
 import com.root.calculadoraedenred.dto.CenarioResponse;
 import com.root.calculadoraedenred.dto.SalvarCenarioRequest;
+import com.root.calculadoraedenred.dto.ScenarioSummaryResponse;
 import com.root.calculadoraedenred.dto.SimulacaoResponse;
 import com.root.calculadoraedenred.model.SavedScenario;
 import com.root.calculadoraedenred.repository.SavedScenarioRepository;
@@ -40,6 +41,12 @@ public class CenarioService {
     public List<CenarioResponse> listarPorEmpresa(Long empresaId) {
         return repository.findByEmpresaIdOrderByCriadoEmDesc(empresaId).stream()
                 .map(CenarioResponse::fromEntity)
+                .toList();
+    }
+
+    public List<ScenarioSummaryResponse> listarResumo(Long empresaId) {
+        return repository.findByEmpresaIdOrderByCriadoEmDesc(empresaId).stream()
+                .map(ScenarioSummaryResponse::fromEntity)
                 .toList();
     }
 }
