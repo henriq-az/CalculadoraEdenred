@@ -81,20 +81,56 @@ function fmtHistValue(g) {
   return `${g.toFixed(2)}g`;
 }
 
+// Interpolação cúbica monotônica (Fritsch–Carlson): mantém a curva suave sem
+// "estourar" para fora do intervalo dos pontos — evita as ondulações que saíam
+// da área visível quando há trechos planos seguidos de uma subida.
 function buildSmoothPath(pts) {
-  if (pts.length < 2) return '';
+  const n = pts.length;
+  if (n < 2) return '';
+  if (n === 2) return `M ${pts[0][0]} ${pts[0][1]} L ${pts[1][0]} ${pts[1][1]}`;
+
+  // Inclinações das secantes entre pontos consecutivos.
+  const dx = [];
+  const delta = [];
+  for (let i = 0; i < n - 1; i++) {
+    const h = pts[i + 1][0] - pts[i][0];
+    dx.push(h);
+    delta.push(h === 0 ? 0 : (pts[i + 1][1] - pts[i][1]) / h);
+  }
+
+  // Tangentes iniciais (média das secantes vizinhas; 0 nos extremos/locais).
+  const m = new Array(n);
+  m[0] = delta[0];
+  m[n - 1] = delta[n - 2];
+  for (let i = 1; i < n - 1; i++) {
+    m[i] = delta[i - 1] * delta[i] <= 0 ? 0 : (delta[i - 1] + delta[i]) / 2;
+  }
+
+  // Ajuste de monotonicidade — limita as tangentes para não haver overshoot.
+  for (let i = 0; i < n - 1; i++) {
+    if (delta[i] === 0) {
+      m[i] = 0;
+      m[i + 1] = 0;
+      continue;
+    }
+    const a = m[i] / delta[i];
+    const b = m[i + 1] / delta[i];
+    const s = a * a + b * b;
+    if (s > 9) {
+      const tau = 3 / Math.sqrt(s);
+      m[i] = tau * a * delta[i];
+      m[i + 1] = tau * b * delta[i];
+    }
+  }
+
+  // Constrói cada segmento como uma curva de Bézier cúbica a partir das tangentes.
   let d = `M ${pts[0][0]} ${pts[0][1]}`;
-  for (let i = 0; i < pts.length - 1; i++) {
-    const p0 = pts[i - 1] || pts[i];
-    const p1 = pts[i];
-    const p2 = pts[i + 1];
-    const p3 = pts[i + 2] || p2;
-    const t = 0.18;
-    const c1x = p1[0] + (p2[0] - p0[0]) * t;
-    const c1y = p1[1] + (p2[1] - p0[1]) * t;
-    const c2x = p2[0] - (p3[0] - p1[0]) * t;
-    const c2y = p2[1] - (p3[1] - p1[1]) * t;
-    d += ` C ${c1x} ${c1y}, ${c2x} ${c2y}, ${p2[0]} ${p2[1]}`;
+  for (let i = 0; i < n - 1; i++) {
+    const c1x = pts[i][0] + dx[i] / 3;
+    const c1y = pts[i][1] + (m[i] * dx[i]) / 3;
+    const c2x = pts[i + 1][0] - dx[i] / 3;
+    const c2y = pts[i + 1][1] - (m[i + 1] * dx[i]) / 3;
+    d += ` C ${c1x} ${c1y}, ${c2x} ${c2y}, ${pts[i + 1][0]} ${pts[i + 1][1]}`;
   }
   return d;
 }
