@@ -274,20 +274,40 @@ public class RelatorioPdfGeneratorImpl implements RelatorioPdfGenerator {
     }
 
     private byte[] svgLogoBytes(float w) throws Exception {
-        try (java.io.InputStream svgStream = getClass().getResourceAsStream("/edenred_logo.svg")) {
-            if (svgStream == null) throw new IllegalStateException("edenred_logo.svg não encontrado");
-            String svg = new String(svgStream.readAllBytes(), java.nio.charset.StandardCharsets.UTF_8);
-            byte[] svgBytes = svg.getBytes(java.nio.charset.StandardCharsets.UTF_8);
+        byte[] svgBytes = lerSvgLogo();
 
-            ByteArrayOutputStream out = new ByteArrayOutputStream();
-            PNGTranscoder tc = new PNGTranscoder();
-            // Só define largura — Batik calcula a altura proporcional ao viewBox do SVG
-            tc.addTranscodingHint(PNGTranscoder.KEY_WIDTH, w);
-            tc.transcode(
-                    new TranscoderInput(new java.io.ByteArrayInputStream(svgBytes)),
-                    new TranscoderOutput(out));
-            return out.toByteArray();
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        PNGTranscoder tc = new PNGTranscoder();
+        // Só define largura — Batik calcula a altura proporcional ao viewBox do SVG
+        tc.addTranscodingHint(PNGTranscoder.KEY_WIDTH, w);
+        tc.transcode(
+                new TranscoderInput(new java.io.ByteArrayInputStream(svgBytes)),
+                new TranscoderOutput(out));
+        return out.toByteArray();
+    }
+
+    /**
+     * Carrega a logo da Edenred. O backend não embute o SVG no classpath, então
+     * lê o arquivo que já existe nos assets do frontend. Tenta alguns caminhos
+     * relativos ao diretório de trabalho e, por fim, o classpath como fallback.
+     */
+    private byte[] lerSvgLogo() throws Exception {
+        String[] candidatos = {
+                "frontend/src/assets/Edenred_Logo.svg",
+                "../frontend/src/assets/Edenred_Logo.svg",
+        };
+        for (String caminho : candidatos) {
+            java.nio.file.Path p = java.nio.file.Paths.get(caminho);
+            if (java.nio.file.Files.isReadable(p)) {
+                return java.nio.file.Files.readAllBytes(p);
+            }
         }
+        try (java.io.InputStream svgStream = getClass().getResourceAsStream("/edenred_logo.svg")) {
+            if (svgStream != null) {
+                return svgStream.readAllBytes();
+            }
+        }
+        throw new IllegalStateException("Logo da Edenred não encontrada (frontend/src/assets/Edenred_Logo.svg)");
     }
 
     // ── Formatadores ──────────────────────────────────────────────────────────
