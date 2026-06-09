@@ -274,7 +274,7 @@ export default function Dashboard() {
       try {
         const [impactData, scoreData, histData] = await Promise.all([
           fetchImpact(companyId, period),
-          fetchScore(companyId, start, end),
+          fetchScore(companyId, start, end, period),
           fetchHistory(companyId, start, end),
         ]);
         if (!cancelled) {
@@ -312,7 +312,7 @@ export default function Dashboard() {
   const rawScore   = Number((score?.score ?? 0).toFixed(2));
   const lvlIdx     = getLevel(rawScore);
   const lvlData    = LEVELS[lvlIdx];
-  const nextLevel  = lvlIdx < 2 ? LEVELS[lvlIdx + 1] : null;
+  const nextLevel  = lvlIdx < 3 ? LEVELS[lvlIdx + 1] : null;
 
   const totalTx    = score?.totalTransactions ?? 0;
   const digitalTx  = score?.digitalTransactions ?? 0;

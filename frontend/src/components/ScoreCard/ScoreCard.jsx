@@ -2,14 +2,16 @@ import { useEffect, useRef, useState } from 'react';
 import './ScoreCard.css';
 
 const LEVELS = [
-  { min: 0,  max: 33,  name: 'Semente', subtitle: 'Primeiros passos na jornada digital' },
-  { min: 34, max: 66,  name: 'Broto',   subtitle: 'Crescendo em práticas sustentáveis' },
-  { min: 67, max: 100, name: 'Árvore',  subtitle: 'Referência em sustentabilidade digital' },
+  { min: 0,  max: 25,  name: 'Aprendiz verde',        subtitle: 'Primeiros passos na jornada digital'  },
+  { min: 26, max: 50,  name: 'Amigo da natureza',      subtitle: 'Crescendo em práticas sustentáveis'   },
+  { min: 51, max: 75,  name: 'Defensor das florestas', subtitle: 'Referência em sustentabilidade digital'},
+  { min: 76, max: 100, name: 'Herói ecológico',         subtitle: 'Guardião da natureza digital'         },
 ];
 
 function getLevel(score) {
-  if (score >= 67) return 2;
-  if (score >= 34) return 1;
+  if (score >= 76) return 3;
+  if (score >= 51) return 2;
+  if (score >= 26) return 1;
   return 0;
 }
 

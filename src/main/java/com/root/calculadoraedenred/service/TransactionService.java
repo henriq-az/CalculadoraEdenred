@@ -14,6 +14,7 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.time.temporal.ChronoUnit;
 import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
@@ -56,7 +57,7 @@ public class TransactionService {
             .collect(Collectors.toList());
     }
 
-    public ScoreDTO calculateScore(Long companyId, LocalDate startDate, LocalDate endDate) {
+    public ScoreDTO calculateScore(Long companyId, LocalDate startDate, LocalDate endDate, String period) {
         Map<PaymentType, Double> factors = buildFactorMap();
         double physicalFactor = factors.getOrDefault(PaymentType.PHYSICAL, 500.0);
 
@@ -77,10 +78,7 @@ public class TransactionService {
             .sum();
         double score;
         if (transactions.isEmpty()) {
-            LocalDate yearStart = LocalDate.of(endDate.getYear(), 1, 1);
-            boolean currentYearHasData = transactionRepository.existsByCompanyIdAndTransactionDateBetween(
-                companyId, yearStart.atStartOfDay(), endDate.atTime(LocalTime.MAX));
-            score = currentYearHasData ? 0.0 : scoreForLastYearWithData(companyId, endDate.getYear());
+            score = scoreForPreviousPeriod(companyId, startDate, endDate, period);
         } else {
             score = Math.min(100, (somaGanhos / transactions.size()) * 100);
         }
@@ -112,7 +110,7 @@ public class TransactionService {
             case YEARLY  -> LocalDate.of(hoje.getYear(), 1, 1);
         };
 
-        ScoreDTO base = calculateScore(companyId, start, hoje);
+        ScoreDTO base = calculateScore(companyId, start, hoje, period.name().toLowerCase());
         double co2 = base.getCo2Saved();
 
         String label = switch (period) {
@@ -124,21 +122,42 @@ public class TransactionService {
         return new ImpactDTO(co2, co2 / 21_000.0, co2 / 120.0, label, period.name().toLowerCase());
     }
 
-    private double scoreForLastYearWithData(Long companyId, int currentYear) {
-        for (int year = currentYear - 1; year >= currentYear - 10; year--) {
-            LocalDate jan1  = LocalDate.of(year, 1, 1);
-            LocalDate dec31 = LocalDate.of(year, 12, 31);
-            List<Transaction> prev = transactionRepository
+    private double scoreForPreviousPeriod(Long companyId, LocalDate startDate, LocalDate endDate, String period) {
+        LocalDate curStart = startDate;
+        LocalDate curEnd   = endDate;
+        for (int i = 0; i < 10; i++) {
+            LocalDate[] prev = previousPeriodDates(curStart, curEnd, period);
+            curStart = prev[0];
+            curEnd   = prev[1];
+            List<Transaction> txs = transactionRepository
                 .findByCompanyIdAndTransactionDateBetweenOrderByTransactionDateDesc(
-                    companyId, jan1.atStartOfDay(), dec31.atTime(LocalTime.MAX));
-            if (!prev.isEmpty()) {
-                double sum = prev.stream()
+                    companyId, curStart.atStartOfDay(), curEnd.atTime(LocalTime.MAX));
+            if (!txs.isEmpty()) {
+                double sum = txs.stream()
                     .mapToDouble(t -> SCORE_WEIGHTS.getOrDefault(t.getPaymentType(), 0.0))
                     .sum();
-                return Math.min(100, (sum / prev.size()) * 100);
+                return Math.min(100, (sum / txs.size()) * 100);
             }
         }
         return 0.0;
+    }
+
+    private LocalDate[] previousPeriodDates(LocalDate startDate, LocalDate endDate, String period) {
+        if ("monthly".equalsIgnoreCase(period)) {
+            LocalDate prevEnd   = startDate.minusDays(1);
+            LocalDate prevStart = prevEnd.withDayOfMonth(1);
+            return new LocalDate[]{prevStart, prevEnd};
+        }
+        if ("yearly".equalsIgnoreCase(period)) {
+            LocalDate prevEnd   = startDate.minusDays(1);
+            LocalDate prevStart = prevEnd.withDayOfYear(1);
+            return new LocalDate[]{prevStart, prevEnd};
+        }
+        // weekly ou qualquer janela: mesmo número de dias
+        long duration = ChronoUnit.DAYS.between(startDate, endDate);
+        LocalDate prevEnd   = startDate.minusDays(1);
+        LocalDate prevStart = prevEnd.minusDays(duration);
+        return new LocalDate[]{prevStart, prevEnd};
     }
 
     private String resolveLabel(double score) {

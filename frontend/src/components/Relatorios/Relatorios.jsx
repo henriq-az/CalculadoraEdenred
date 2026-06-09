@@ -89,7 +89,7 @@ export default function Relatorios() {
       try {
         const [impactData, scoreData, histData] = await Promise.all([
           fetchImpact(companyId, period),
-          fetchScore(companyId, start, end),
+          fetchScore(companyId, start, end, period),
           fetchHistory(companyId, start, end),
         ]);
         if (!cancelled) {
