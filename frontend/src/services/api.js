@@ -70,8 +70,9 @@ export async function fetchHistoryForYear(companyId, year) {
 }
 
 
-export async function fetchScore(companyId, startDate, endDate) {
+export async function fetchScore(companyId, startDate, endDate, period) {
   const params = new URLSearchParams({ companyId, startDate, endDate });
+  if (period) params.append('period', period);
   const res = await fetch(`${BASE}/score?${params}`, { headers: authHeaders() });
   if (!res.ok) throw new Error(`Erro ao buscar score: ${res.status}`);
   return res.json();

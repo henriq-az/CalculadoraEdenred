@@ -37,10 +37,10 @@ const PERIODS = [
   { value: 'yearly',  label: 'Ano'    },
 ];
 
-function monthRange() {
+function yearRange() {
   const now = new Date();
   const end = now.toISOString().slice(0, 10);
-  const start = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().slice(0, 10);
+  const start = new Date(now.getFullYear(), 0, 1).toISOString().slice(0, 10);
   return { start, end };
 }
 
@@ -55,12 +55,12 @@ export default function Layout() {
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const userMenuRef                     = useRef(null);
 
-  // Score do mês atual só pro badge de nível da sidebar (independe do período do Dashboard).
+  // Score anual para o badge de nível da sidebar.
   useEffect(() => {
     if (!companyId) return;
     let cancelled = false;
-    const { start, end } = monthRange();
-    fetchScore(companyId, start, end)
+    const { start, end } = yearRange();
+    fetchScore(companyId, start, end, 'yearly')
       .then(s => { if (!cancelled) setScore(s); })
       .catch(() => {});
     return () => { cancelled = true; };

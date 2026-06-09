@@ -43,7 +43,8 @@ public class TransactionController {
     public ResponseEntity<ScoreDTO> getScore(
             @RequestParam Long companyId,
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
-            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate) {
-        return ResponseEntity.ok(transactionService.calculateScore(companyId, startDate, endDate));
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate,
+            @RequestParam(required = false) String period) {
+        return ResponseEntity.ok(transactionService.calculateScore(companyId, startDate, endDate, period));
     }
 }
