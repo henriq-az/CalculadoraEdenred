@@ -11,7 +11,7 @@ import homeIcon from '../../assets/HomeIcon.svg';
 import simuladorIcon from '../../assets/SimuladorIcon.svg';
 import cenariosIcon from '../../assets/CenariosIcon.svg';
 import relatorioIcon from '../../assets/RelatorioIcon.svg';
-import metasIcon from '../../assets/MetasIcon.svg';
+
 import configuracoesIcon from '../../assets/ConfihuraçõesIcon.svg';
 import '../Dashboard/Dashboard.css';
 
@@ -20,7 +20,6 @@ const NAV_ITEMS = [
   { label: 'Simulador',     to: '/simulador', icon: simuladorIcon },
   { label: 'Cenários',      to: '/cenarios',  icon: cenariosIcon },
   { label: 'Relatórios',    to: '/relatorios', icon: relatorioIcon },
-  { label: 'Metas',         to: null,         icon: metasIcon },
   { label: 'Configurações', to: null,         icon: configuracoesIcon },
 ];
 

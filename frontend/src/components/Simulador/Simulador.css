@@ -329,24 +329,31 @@
   display: flex;
   align-items: center;
   gap: 14px;
-  background: #fff;
-  border: 1.5px solid #E4E7EB;
-  border-radius: 14px;
-  padding: 16px 20px;
-  box-shadow: 0px 4px 5px rgba(0, 0, 0, 0.17);
+  background: #FFF;
+  border: 0.8px solid #E9E9E9;
+  border-radius: 22px;
+  padding: 4px 20px 4px 10px;
+  box-shadow: 0 4px 5px 0 rgba(0, 0, 0, 0.17);
+}
+
+.sim-economy .sim-mask-icon {
+  width: 55px;
+  height: 55px;
 }
 
 .sim-economy-body {
   display: flex;
   flex-direction: column;
-  gap: 3px;
+  gap: 1px;
 }
 
 .sim-economy-val {
-  font-family: var(--sans);
-  font-size: var(--text-lg); /* 17 */
+  color: #101828;
+  font-family: Ubuntu, sans-serif;
+  font-size: 24px;
+  font-style: normal;
   font-weight: 700;
-  color: #101727;
+  line-height: 24px;
 }
 
 .sim-economy-sub {
@@ -358,7 +365,7 @@
 /* ── Equivalences row ────────────────────────────────────────────── */
 .sim-equiv-row {
   display: flex;
-  gap: 12px;
+  gap: 6px;
 }
 
 .sim-equiv {
@@ -366,26 +373,37 @@
   background: #fff;
   border: 1.5px solid #E4E7EB;
   border-radius: 14px;
-  padding: 14px 12px;
+  padding: 8px 12px;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 4px;
+  gap: 1px;
   box-shadow: 0px 4px 5px rgba(0, 0, 0, 0.17);
 }
 
+.sim-equiv .sim-mask-icon {
+  width: 44px;
+  height: 44px;
+}
+
 .sim-equiv-num {
-  font-family: var(--sans);
-  font-size: var(--text-lg); /* 17 */
+  color: #101828;
+  text-align: center;
+  font-family: Ubuntu, sans-serif;
+  font-size: 22px;
+  font-style: normal;
   font-weight: 700;
-  color: #101727;
+  line-height: 24px;
 }
 
 .sim-equiv-label {
-  font-family: var(--sans);
-  font-size: var(--text-sm); /* 13 */
-  color: #697282;
+  color: #364153;
   text-align: center;
+  font-family: Ubuntu, sans-serif;
+  font-size: 15px;
+  font-style: normal;
+  font-weight: 400;
+  line-height: 24px;
 }
 
 /* ── Comparativo ─────────────────────────────────────────────────── */
