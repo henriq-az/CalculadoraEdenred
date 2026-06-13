@@ -2,7 +2,7 @@ import { getToken } from './auth';
 
 console.log('VITE_API_URL:', import.meta.env.VITE_API_URL);
 
-const BASE_URL = import.meta.env.VITE_API_URL || '';
+const BASE_URL = 'https://calculadoraedenred.onrender.com';
 const BASE = `${BASE_URL}/api/transactions`;
 
 // Anexa o token JWT (quando houver). Hoje o token é mock; quando o backend
