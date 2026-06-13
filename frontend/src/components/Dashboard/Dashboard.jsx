@@ -38,7 +38,7 @@ function fmtCo2(grams) {
 
 // ── Chart ─────────────────────────────────────────────────────────────────────
 const PHYSICAL_CO2  = 0.98;
-const DIGITAL_TYPES = new Set(['PIX', 'NFC', 'TED']);
+const DIGITAL_TYPES = new Set(['PIX', 'NFC', 'TED', 'QR', 'WALLET']);
 const MONTHS_PT     = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
 
 function buildHistData(transactions, year) {
@@ -79,6 +79,13 @@ function buildDailyHistData(transactions, year, month) {
 function fmtHistValue(g) {
   if (g >= 1000) return `${(g / 1000).toFixed(1)}kg`;
   return `${g.toFixed(2)}g`;
+}
+
+function fmtCo2Precise(g) {
+  if (g >= 1_000_000) return `${(g / 1_000_000).toFixed(2)}t`;
+  if (g >= 1_000)     return `${(g / 1_000).toFixed(2)}kg`;
+  if (g >= 1)         return `${g.toFixed(2)}g`;
+  return `${g.toFixed(3)}g`;
 }
 
 // Interpolação cúbica monotônica (Fritsch–Carlson): mantém a curva suave sem
@@ -329,14 +336,13 @@ export default function Dashboard() {
     return acc;
   }, {});
 
-  const physTxs = transactions.filter(tx => tx.paymentType === 'PHYSICAL');
-  const digTxs  = transactions.filter(tx => tx.paymentType !== 'PHYSICAL' && tx.paymentType !== 'UNKNOWN');
-  const avgPhys = physTxs.length > 0
-    ? physTxs.reduce((s, tx) => s + (tx.co2Grams ?? 0), 0) / physTxs.length : 257;
-  const avgDig  = digTxs.length > 0
-    ? digTxs.reduce((s, tx) => s + (tx.co2Grams ?? 0), 0) / digTxs.length   : 12;
-  const maxAvg  = Math.max(avgPhys, avgDig, 1);
-  const redPct  = avgPhys > 0 ? Math.round((1 - avgDig / avgPhys) * 100) : 95;
+  const digTxs    = transactions.filter(tx => tx.paymentType !== 'PHYSICAL' && tx.paymentType !== 'UNKNOWN');
+  const avgToday  = transactions.length > 0
+    ? transactions.reduce((s, tx) => s + (tx.co2Grams ?? 0), 0) / transactions.length : 0;
+  const avgDig    = digTxs.length > 0
+    ? digTxs.reduce((s, tx) => s + (tx.co2Grams ?? 0), 0) / digTxs.length : 0;
+  const maxAvg    = Math.max(avgToday, avgDig, 0.001);
+  const redPct    = avgToday > 0 ? Math.round((1 - avgDig / avgToday) * 100) : 0;
   const benchPct = digitalPct || 72;
 
   return (
@@ -458,15 +464,15 @@ export default function Dashboard() {
                     <div className="fg-compare-list">
                       <span className="fg-compare-label">Hoje (físico + digital)</span>
                       <div className="fg-compare-track">
-                        <div className="fg-compare-fill" style={{ width: `${(avgPhys / maxAvg) * 100}%` }} />
+                        <div className="fg-compare-fill" style={{ width: `${(avgToday / maxAvg) * 100}%` }} />
                       </div>
-                      <span className="fg-compare-val">{fmtCo2(avgPhys)} CO₂</span>
+                      <span className="fg-compare-val">{fmtCo2Precise(avgToday)} CO₂</span>
 
                       <span className="fg-compare-label">100% digital</span>
                       <div className="fg-compare-track">
                         <div className="fg-compare-fill fg-compare-fill--pink" style={{ width: `${(avgDig / maxAvg) * 100}%` }} />
                       </div>
-                      <span className="fg-compare-val fg-compare-val--pink">{fmtCo2(avgDig)} CO₂</span>
+                      <span className="fg-compare-val fg-compare-val--pink">{fmtCo2Precise(avgDig)} CO₂</span>
                     </div>
                   </div>
 
