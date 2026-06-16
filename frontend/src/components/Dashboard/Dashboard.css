@@ -1003,13 +1003,13 @@
 }
 
 .fg-card--hist {
-  height: 210px;
+  height: 280px;
 }
 
 .fg-card--hist .fg-chart-wrap {
   flex: 1;
   min-height: 0;
-  overflow: hidden;
+  overflow: visible;
 }
 
 .fg-compare-list {

@@ -40,6 +40,7 @@ function fmtCo2(grams) {
 const PHYSICAL_CO2  = 0.98;
 const DIGITAL_TYPES = new Set(['PIX', 'NFC', 'TED', 'QR', 'WALLET']);
 const MONTHS_PT     = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
+const DAYS_PT       = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
 
 function buildHistData(transactions, year) {
   const today    = new Date();
@@ -54,6 +55,34 @@ function buildHistData(transactions, year) {
     }
   }
   return MONTHS_PT.slice(0, maxMonth + 1).map((month, i) => ({ month, value: +totals[i].toFixed(2) }));
+}
+
+function getWeekDates(offset) {
+  const end = new Date();
+  end.setDate(end.getDate() - offset * 7);
+  const start = new Date(end);
+  start.setDate(start.getDate() - 6);
+  return { start, end };
+}
+
+function buildWeeklyHistData(transactions, offset = 0) {
+  const { start, end } = getWeekDates(offset);
+  const days = [];
+  for (let i = 6; i >= 0; i--) {
+    const d = new Date(end);
+    d.setDate(d.getDate() - i);
+    days.push(d);
+  }
+  return days.map(day => {
+    const dayStr = day.toISOString().slice(0, 10);
+    const total = transactions
+      .filter(tx => {
+        const txDate = new Date(tx.transactionDate);
+        return txDate.toISOString().slice(0, 10) === dayStr && DIGITAL_TYPES.has(tx.paymentType);
+      })
+      .reduce((sum, tx) => sum + Math.max(0, PHYSICAL_CO2 - (tx.co2Grams ?? 0)), 0);
+    return { month: String(day.getDate()), value: +total.toFixed(2) };
+  });
 }
 
 function buildDailyHistData(transactions, year, month) {
@@ -267,6 +296,7 @@ export default function Dashboard() {
   const [histChartData, setHistChartData] = useState([]);
   const [histYear, setHistYear]           = useState(new Date().getFullYear());
   const [histMonth, setHistMonth]         = useState(new Date().getMonth());
+  const [histWeekOffset, setHistWeekOffset] = useState(0);
   const [loading, setLoading]             = useState(false);
   const [error, setError]                 = useState(null);
 
@@ -308,13 +338,18 @@ export default function Dashboard() {
       fetchHistoryForYear(companyId, histYear)
         .then(txs => { if (!cancelled) setHistChartData(buildHistData(txs, histYear)); })
         .catch(() => {});
+    } else if (period === 'weekly') {
+      const { start, end } = getWeekDates(histWeekOffset);
+      fetchHistory(companyId, start.toISOString().slice(0, 10), end.toISOString().slice(0, 10))
+        .then(txs => { if (!cancelled) setHistChartData(buildWeeklyHistData(txs, histWeekOffset)); })
+        .catch(() => {});
     } else {
       fetchHistoryForMonth(companyId, histYear, histMonth)
         .then(txs => { if (!cancelled) setHistChartData(buildDailyHistData(txs, histYear, histMonth)); })
         .catch(() => {});
     }
     return () => { cancelled = true; };
-  }, [companyId, period, histYear, histMonth]);
+  }, [companyId, period, histYear, histMonth, histWeekOffset]);
 
   const rawScore   = Number((score?.score ?? 0).toFixed(2));
   const lvlIdx     = getLevel(rawScore);
@@ -343,7 +378,7 @@ export default function Dashboard() {
     ? digTxs.reduce((s, tx) => s + (tx.co2Grams ?? 0), 0) / digTxs.length : 0;
   const maxAvg    = Math.max(avgToday, avgDig, 0.001);
   const redPct    = avgToday > 0 ? Math.round((1 - avgDig / avgToday) * 100) : 0;
-  const benchPct = digitalPct || 72;
+  const benchPct = rawScore;
 
   return (
     <>
@@ -492,7 +527,7 @@ export default function Dashboard() {
                         <span>Alto desempenho</span>
                       </div>
                       <p className="fg-bench-desc">
-                        Você está acima de {benchPct}% das empresas no setor
+                        Seu score de sustentabilidade é {benchPct.toFixed(1)}/100
                       </p>
                     </div>
                   </div>
@@ -502,30 +537,40 @@ export default function Dashboard() {
                   <div className="fg-card fg-card--hist">
                     {(() => {
                       const today = new Date();
-                      const isYearly = period === 'yearly';
+                      const isYearly  = period === 'yearly';
+                      const isWeekly  = period === 'weekly';
                       const isCurrentMonth = histYear === today.getFullYear() && histMonth === today.getMonth();
                       const isCurrentYear  = histYear >= today.getFullYear();
                       const daysInMonth    = new Date(histYear, histMonth + 1, 0).getDate();
                       const maxDay         = isCurrentMonth ? today.getDate() : daysInMonth;
 
+                      // Label da semana
+                      const { start: wStart, end: wEnd } = getWeekDates(histWeekOffset);
+                      const weekLabel = wStart.getMonth() === wEnd.getMonth()
+                        ? `${wStart.getDate()}–${wEnd.getDate()} ${MONTHS_PT[wStart.getMonth()]}`
+                        : `${wStart.getDate()} ${MONTHS_PT[wStart.getMonth()]}–${wEnd.getDate()} ${MONTHS_PT[wEnd.getMonth()]}`;
+
                       function prevNav() {
-                        if (isYearly) { setHistYear(y => y - 1); }
+                        if (isYearly)  { setHistYear(y => y - 1); }
+                        else if (isWeekly) { setHistWeekOffset(w => w + 1); }
                         else if (histMonth === 0) { setHistYear(y => y - 1); setHistMonth(11); }
                         else { setHistMonth(m => m - 1); }
                       }
                       function nextNav() {
-                        if (isYearly) { if (!isCurrentYear) setHistYear(y => y + 1); }
+                        if (isYearly)  { if (!isCurrentYear) setHistYear(y => y + 1); }
+                        else if (isWeekly) { if (histWeekOffset > 0) setHistWeekOffset(w => w - 1); }
                         else if (!isCurrentMonth) {
                           if (histMonth === 11) { setHistYear(y => y + 1); setHistMonth(0); }
                           else { setHistMonth(m => m + 1); }
                         }
                       }
-                      const navLabel  = isYearly ? `${histYear}` : `${MONTHS_PT[histMonth]} ${histYear}`;
-                      const navMinW   = isYearly ? '36px' : '80px';
-                      const prevDis   = isYearly ? histYear <= 2020 : (histYear <= 2020 && histMonth === 0);
-                      const nextDis   = isYearly ? isCurrentYear : isCurrentMonth;
-                      const subtitle  = isYearly
+                      const navLabel = isYearly ? `${histYear}` : isWeekly ? weekLabel : `${MONTHS_PT[histMonth]} ${histYear}`;
+                      const navMinW  = isYearly ? '36px' : isWeekly ? '110px' : '80px';
+                      const prevDis  = isYearly ? histYear <= 2020 : isWeekly ? false : (histYear <= 2020 && histMonth === 0);
+                      const nextDis  = isYearly ? isCurrentYear : isWeekly ? histWeekOffset === 0 : isCurrentMonth;
+                      const subtitle = isYearly
                         ? `Janeiro a ${isCurrentYear ? MONTHS_PT[today.getMonth()] : 'Dezembro'} ${histYear}`
+                        : isWeekly ? weekLabel
                         : `Dia 1 a ${maxDay} — ${MONTHS_PT[histMonth]} ${histYear}`;
 
                       return (
@@ -552,7 +597,7 @@ export default function Dashboard() {
                     <div className="fg-card-head">
                       <div>
                         <div className="fg-card-title">Impacto acumulado</div>
-                        <div className="fg-card-sub">Desde o início da plataforma</div>
+                        <div className="fg-card-sub">No período selecionado</div>
                       </div>
                     </div>
                     <div className="fg-impact-list">
@@ -561,22 +606,14 @@ export default function Dashboard() {
                           <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
                         </svg>
                         <span className="fg-impact-label">CO₂ evitado</span>
-                        <span className="fg-impact-val">{fmtCo2(co2Grams)}</span>
-                      </div>
-                      <div className="fg-impact-item">
-                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#4F8C5A" strokeWidth="1.5">
-                          <rect x="2" y="3" width="20" height="14" rx="2"/>
-                          <path d="M8 21h8"/><path d="M12 17v4"/>
-                        </svg>
-                        <span className="fg-impact-label">Cartões não emitidos</span>
-                        <span className="fg-impact-val">{digitalTx.toLocaleString('pt-BR')}</span>
+                        <span className="fg-impact-val">{fmtCo2Precise(co2Grams)}</span>
                       </div>
                       <div className="fg-impact-item">
                         <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#4F8C5A" strokeWidth="1.5">
                           <path d="M12 22V12"/><path d="M12 12C12 12 7 8 7 4a5 5 0 0 1 10 0c0 4-5 8-5 8z"/>
                         </svg>
                         <span className="fg-impact-label">Árvores equivalentes</span>
-                        <span className="fg-impact-val">{treesEq.toFixed(0)}</span>
+                        <span className="fg-impact-val">{treesEq < 0.01 ? '< 0.01' : treesEq.toFixed(2)}</span>
                       </div>
                     </div>
                   </div>
