@@ -32,9 +32,10 @@
 
 /* ── Section card ────────────────────────────────────────────────────────── */
 .rl-card {
-  width: 1221px;
-  height: 270px;
+  width: 100%;
+  min-height: 270px;
   padding: 24px;
+  box-sizing: border-box;
   border-radius: 22px;
   border: 0.8px solid #F0F3F8;
   background: #FFF;
@@ -137,9 +138,9 @@
   justify-content: center;
   gap: 7px;
   padding: 9px 12px;
-  border: 1.5px solid #D1D5DB;
-  border-radius: 8px;
-  background: #fff;
+  border-radius: 10px;
+  border: 0.8px solid rgba(0, 0, 0, 0.10);
+  background: #FFF;
   color: #1A1A1A;
   text-align: center;
   font-family: Ubuntu, sans-serif;
@@ -178,6 +179,7 @@
 /* ── Table ───────────────────────────────────────────────────────────────── */
 .rl-table-wrap {
   overflow-x: auto;
+  width: 100%;
 }
 
 .rl-table {
@@ -187,11 +189,15 @@
 }
 
 .rl-table th {
+  padding: 13px 14px;
+  color: #1A1A1A;
   text-align: left;
-  padding: 10px 14px;
-  font-size: 12px;
-  font-weight: 600;
-  color: #697282;
+  vertical-align: middle;
+  font-family: Inter, sans-serif;
+  font-size: 12.7px;
+  font-style: normal;
+  font-weight: 500;
+  line-height: 20px;
   border-bottom: 1px solid #E5E5E5;
   white-space: nowrap;
 }
@@ -199,8 +205,27 @@
 .rl-table td {
   padding: 13px 14px;
   color: #364153;
-  border-bottom: 1px solid #F3F4F6;
+  text-align: left;
   vertical-align: middle;
+  border-bottom: 1px solid #F3F4F6;
+}
+
+.rl-td-period {
+  color: #1A1A1A;
+  font-family: Inter, sans-serif;
+  font-size: 12.9px;
+  font-style: normal;
+  font-weight: 400;
+  line-height: 20px;
+}
+
+.rl-td-date {
+  color: #1A1A1A;
+  font-family: Inter, sans-serif;
+  font-size: 13px;
+  font-style: normal;
+  font-weight: 400;
+  line-height: 20px;
 }
 
 .rl-table tr:last-child td { border-bottom: none; }
@@ -239,8 +264,15 @@
 }
 
 .rl-badge--available {
-  background: #DCFCE7;
-  color: #166534;
+  background: #52B788;
+  border-radius: 10px;
+  color: #FFF;
+  text-align: center;
+  font-family: Inter, sans-serif;
+  font-size: 11.4px;
+  font-style: normal;
+  font-weight: 500;
+  line-height: 16px;
 }
 
 .rl-badge--type {

@@ -269,16 +269,13 @@ export default function Relatorios() {
                       {row.nome}
                     </div>
                   </td>
-                  <td>{row.periodo}</td>
-                  <td>{row.data}</td>
+                  <td className="rl-td-period">{row.periodo}</td>
+                  <td className="rl-td-date">{row.data}</td>
                   <td>
                     <span className="rl-badge rl-badge--type">{row.tipo}</span>
                   </td>
                   <td>
                     <span className="rl-badge rl-badge--available">
-                      <svg width="8" height="8" viewBox="0 0 8 8" fill="currentColor">
-                        <circle cx="4" cy="4" r="4"/>
-                      </svg>
                       {row.status}
                     </span>
                   </td>
