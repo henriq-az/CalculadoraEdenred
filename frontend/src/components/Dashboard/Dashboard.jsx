@@ -499,7 +499,7 @@ export default function Dashboard() {
                 </div>
 
                 <div className="fg-col">
-                  <div className="fg-card">
+                  <div className="fg-card fg-card--hist">
                     {(() => {
                       const today = new Date();
                       const isYearly = period === 'yearly';
