@@ -620,8 +620,9 @@ export default function Dashboard() {
                         <span className="fg-impact-val">{fmtCo2Precise(co2Grams)}</span>
                       </div>
                       <div className="fg-impact-item">
-                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#4F8C5A" strokeWidth="1.5">
-                          <path d="M12 22V12"/><path d="M12 12C12 12 7 8 7 4a5 5 0 0 1 10 0c0 4-5 8-5 8z"/>
+                        <svg width="22" height="22" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+                          <path d="M24.2812 26.0938L24.2813 42.5" stroke="#CC2222" strokeWidth="3" strokeLinecap="round"/>
+                          <path fillRule="evenodd" clipRule="evenodd" d="M36 22.5781C36 20.1077 34.4711 17.9943 32.3079 17.1326C32.6745 16.1529 32.875 15.0921 32.875 13.9844C32.875 9.02246 28.8525 5 23.8906 5C18.9287 5 14.9062 9.02246 14.9062 13.9844C14.9062 14.0982 14.9083 14.2115 14.9125 14.3243C14.9163 14.4253 14.9217 14.5259 14.9288 14.626C12.5812 15.9735 11 18.5052 11 21.4062C11 25.721 14.4978 29.2188 18.8125 29.2188C21.4892 29.2188 21.8853 25.5252 23.8906 25.3125C25.896 25.0998 27.7129 28.4375 29.75 28.4375C32.9861 28.4375 36 25.8142 36 22.5781Z" stroke="#CC2222" strokeWidth="3" strokeLinecap="round"/>
                         </svg>
                         <span className="fg-impact-label">Árvores equivalentes</span>
                         <span className="fg-impact-val">{treesEq < 0.01 ? '< 0.01' : treesEq.toFixed(2)}</span>
