@@ -20,11 +20,6 @@ Burndown Sprint 1:
 Burndown Sprint 2:
 ![Burndown Sprint 2](burndown/burndown_sprint2.png)
 
-- [Burnup Sprint 1](https://github.com/orgs/root-2026-1/projects/2/insights/3): H1 e H2
-- [Burnup Sprint 2](https://github.com/orgs/root-2026-1/projects/2/insights/6): H3 e H4
-- [Burnup Sprint 3](https://github.com/orgs/root-2026-1/projects/2/insights/7): Épica
-- [Burnup Sprint 4](https://github.com/orgs/root-2026-1/projects/2/insights/8): Últimos testes e correções de Bugs
-
 ## Tecnologias
 
 - **Backend:** Java 17 + Spring Boot 3.5

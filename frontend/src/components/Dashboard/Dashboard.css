@@ -4,7 +4,7 @@
   inset: 0;
   z-index: 100;
   display: flex;
-  background: #F5F7FA;
+  background: #FFFFFF00;
   font-family: 'Ubuntu', system-ui, sans-serif;
   font-size: 14px;
   color: #101727;
@@ -18,7 +18,7 @@
   border-right: 1px solid #E4E7EB;
   display: flex;
   flex-direction: column;
-  box-shadow: 3px 0 10px rgba(0, 0, 0, 0.06);
+  box-shadow: 4px 0 5px 0 rgba(0, 0, 0, 0.17);
 }
 
 .fg-logo {
@@ -1000,6 +1000,16 @@
 /* ── Compare ─────────────────────────────────────────────────────────────── */
 .fg-card--comparativo {
   padding: 28px 26px 58px;
+}
+
+.fg-card--hist {
+  height: 280px;
+}
+
+.fg-card--hist .fg-chart-wrap {
+  flex: 1;
+  min-height: 0;
+  overflow: visible;
 }
 
 .fg-compare-list {

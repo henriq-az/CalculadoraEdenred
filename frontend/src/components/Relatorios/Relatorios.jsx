@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import { useOutletContext } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { fetchImpact, fetchScore, fetchHistory, exportImpactReport } from '../../services/api';
@@ -70,7 +70,7 @@ function DocIcon() {
 export default function Relatorios() {
   const { empresa }   = useAuth();
   const companyId     = empresa?.id ?? '1';
-  const { period }    = useOutletContext();
+  const { period, setHeaderSlot } = useOutletContext();
 
   const [impact,       setImpact]       = useState(null);
   const [score,        setScore]        = useState(null);
@@ -108,12 +108,12 @@ export default function Relatorios() {
     return () => { cancelled = true; };
   }, [companyId, period]);
 
-  const co2ByType = transactions.reduce((acc, tx) => {
+  const co2ByType = useMemo(() => transactions.reduce((acc, tx) => {
     const t = tx.paymentType || 'UNKNOWN';
     if (!acc[t]) acc[t] = { count: 0 };
     acc[t].count += 1;
     return acc;
-  }, {});
+  }, {}), [transactions]);
 
   const totalTx    = score?.totalTransactions  ?? 0;
   const digitalTx  = score?.digitalTransactions ?? 0;
@@ -121,7 +121,7 @@ export default function Relatorios() {
   const rawScore   = Number((score?.score ?? 0).toFixed(2));
   const lvlData    = LEVELS[getLevel(rawScore)];
 
-  async function handleExport() {
+  const handleExport = useCallback(async () => {
     setExportError(null);
     const itens = Object.entries(co2ByType)
       .filter(([pt]) => pt !== 'UNKNOWN')
@@ -158,26 +158,28 @@ export default function Relatorios() {
     } finally {
       setExporting(false);
     }
-  }
+  }, [co2ByType, period, companyId, empresa, impact, rawScore, totalTx, digitalPct]);
 
   const canExport = !exporting;
 
+  useEffect(() => {
+    setHeaderSlot(
+      <button
+        className="rl-generate-btn"
+        onClick={handleExport}
+        disabled={!canExport || loading}
+      >
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+          <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+        </svg>
+        {exporting ? 'Gerando PDF…' : 'Gerar Novo Relatório'}
+      </button>
+    );
+    return () => setHeaderSlot(null);
+  }, [handleExport, canExport, exporting, loading, setHeaderSlot]);
+
   return (
     <div className="rl-page">
-
-      {/* Top bar */}
-      <div className="rl-top-bar">
-        <button
-          className="rl-generate-btn"
-          onClick={handleExport}
-          disabled={!canExport || loading}
-        >
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-            <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
-          </svg>
-          {exporting ? 'Gerando PDF…' : 'Gerar Novo Relatório'}
-        </button>
-      </div>
 
       {/* Seção 1 — Prévia */}
       <div className="rl-card">
@@ -267,16 +269,13 @@ export default function Relatorios() {
                       {row.nome}
                     </div>
                   </td>
-                  <td>{row.periodo}</td>
-                  <td>{row.data}</td>
+                  <td className="rl-td-period">{row.periodo}</td>
+                  <td className="rl-td-date">{row.data}</td>
                   <td>
                     <span className="rl-badge rl-badge--type">{row.tipo}</span>
                   </td>
                   <td>
                     <span className="rl-badge rl-badge--available">
-                      <svg width="8" height="8" viewBox="0 0 8 8" fill="currentColor">
-                        <circle cx="4" cy="4" r="4"/>
-                      </svg>
                       {row.status}
                     </span>
                   </td>

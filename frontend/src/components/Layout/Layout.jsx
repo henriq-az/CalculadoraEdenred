@@ -51,6 +51,7 @@ export default function Layout() {
 
   const [score, setScore]               = useState(null);
   const [period, setPeriod]             = useState('monthly');
+  const [headerSlot, setHeaderSlot]     = useState(null);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const userMenuRef                     = useRef(null);
 
@@ -132,6 +133,7 @@ export default function Layout() {
             <span className="fg-topbar-crumb">{crumb}</span>
           </div>
           <div className="fg-topbar-right">
+            {headerSlot}
             {/* Seletor de período — Dashboard e Relatórios */}
             {showPeriodToggle && (
               <div className="fg-tabs" role="group" aria-label="Período">
@@ -198,7 +200,7 @@ export default function Layout() {
 
         {/* CONTENT — cada página entra aqui; período compartilhado via context */}
         <main className="fg-content">
-          <Outlet context={{ period, setPeriod }} />
+          <Outlet context={{ period, setPeriod, setHeaderSlot }} />
         </main>
       </div>
     </div>
