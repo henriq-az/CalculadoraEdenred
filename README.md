@@ -14,11 +14,15 @@ Plataforma de sustentabilidade para a Edenred que rastreia o impacto ambiental d
 
 ### Sprint 1 (28/04 – 12/05)
 Burndown Sprint 1:
-![Burndown Sprint 1](burndown/burndown_sprint1.png)
+![Burndown Sprint 1](burndown/Sprint_1.png)
 
 ### Sprint 2 (14/05 – 26/05)
 Burndown Sprint 2:
-![Burndown Sprint 2](burndown/burndown_sprint2.png)
+![Burndown Sprint 2](burndown/Sprint_2.png)
+
+### Sprint 3 (26/05 – 09/06)
+Burndown Sprint 3:
+![Burndown Sprint 3](burndown/Sprint_3.png)
 
 ## Tecnologias
 
